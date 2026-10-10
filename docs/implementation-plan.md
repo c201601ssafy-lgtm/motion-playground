@@ -119,7 +119,7 @@ holoforge-ai-lab/
 | P1-1 | 모노레포 뼈대 | frontend/, backend/, README, LICENSE, .gitignore, .env.example | `npm run build` 성공, `uvicorn` 기동 후 `GET /api/health` = 200 | 완료 | health 200, pytest 1 passed, vite build OK |
 | P1-2 | 부품 YAML + 로더 | models/gearbox/*.yaml, model_loader.py | 로더 테스트 통과, 참조 무결성·기어 중심 거리 검사 통과 | 완료 | pytest 10 passed, GET /api/models/gearbox 8부품·8슬롯·4단계 |
 | P1-3 | Assembly Engine | engine.py, assembly-cases.jsonl | 오류 8종 + 전체 조립 + 기구 상태(출력 rpm = 입력/3) pytest 통과 | 완료 | pytest 37 passed (케이스 16개, 오류 8종 전부, 출력 rpm 10 @ 입력 30) |
-| P1-4 | 세션 API + SQLite | api/, db.py | TestClient로 세션 생성 → 전체 조립 → mechanism 응답 확인 | 진행중 | |
+| P1-4 | 세션 API + SQLite | api/, db.py | TestClient로 세션 생성 → 전체 조립 → mechanism 응답 확인 | 완료 | pytest 42 passed, 실서버 curl로 8부품 조립 → 입력 30rpm 시 출력 10rpm 확인 |
 | P1-5 | 3D 씬 + Command 계층 | three/parts/, features/commands/ | 브라우저에서 8부품 표시, 마우스 드래그 회전, Vitest(CommandBus) 통과 | 대기 | |
 | P1-6 | CI + 기본 문서 | ci.yml, architecture.md, licenses.md, simulation-limitations.md | 로컬에서 ruff·pytest·tsc·vitest·build 전부 통과 | 대기 | |
 
