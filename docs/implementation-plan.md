@@ -1,0 +1,189 @@
+# HoloForge AI — 설계 및 구현 계획
+
+> 기준 문서: [`spec.md`](spec.md)(원본 명세), [`decision-log.md`](decision-log.md)(확정 결정, spec보다 우선).
+> 단계별 상세 지시: [`prompts/phase-1.md`](prompts/phase-1.md) ~ [`prompts/phase-4.md`](prompts/phase-4.md).
+
+## 0. 작업 규칙
+
+모든 작업은 아래 순서를 지킨다.
+
+1. 이 문서 해당 작업 상태를 `진행중`으로 바꾼다 → 커밋 → `git push`.
+2. 구현한다(테스트 포함).
+3. 해당 작업의 **스모크 테스트**를 실행한다.
+4. 통과하면 상태를 `완료`로 바꾸고 결과 한 줄을 비고에 적는다 → 커밋 → `git push`.
+5. 실패하면 `진행중` 유지, 비고에 실패 원인을 적고 고친다. 실패한 채로 `완료` 처리하지 않는다.
+
+상태 값: `대기` / `진행중` / `완료` / `보류`
+
+커밋 메시지: `docs: [P1-2] 진행중`, `feat(backend): [P1-2] assembly engine`, `docs: [P1-2] 완료`.
+
+## 1. 전체 설계
+
+### 1.1 처리 흐름
+
+```
+[브라우저]
+웹캠 ─▶ HandTracker(MediaPipe) ─▶ FeatureExtractor ─▶ RuleClassifier
+     ─▶ GestureStateMachine(유지·히스테리시스·쿨다운) ─▶ OneEuroFilter
+     ─▶ GestureCommandSource ─┐
+       MouseCommandSource ────┼─▶ CommandBus ─▶ 3D Scene(R3F): raycast·드래그 평면·스냅 미리보기
+       KeyboardCommandSource ─┘                     │ RELEASE_PART
+                                                    ▼
+[백엔드 FastAPI]                          POST /sessions/{id}/attempt
+  ModelLoader(YAML→Pydantic) ─▶ AssemblyEngine(규칙 판정, 기구 계산) ◀─ Tools ◀─ Tutor loop ◀─ LLMAdapter(Ollama | Mock)
+  SQLite(세션 상태, 이벤트 로그)
+```
+
+### 1.2 핵심 설계 원칙
+
+| 원칙 | 구현 방법 |
+|---|---|
+| 제스처와 3D 분리 | 비전 코드는 `Command`(화면 좌표)까지만. 대상 부품·월드 좌표는 3D 계층이 결정 |
+| 판정은 규칙 엔진 | `AssemblyEngine`(Python)만 판정. 프론트는 가장 가까운 슬롯 표시만 |
+| LLM은 도구로 조회 | 수치는 도구 결과만. 근거 없는 숫자 → `UNGROUNDED_NUMBER` 경고 |
+| 교체 가능 | `LLMAdapter`, `CommandSource`, `PartVisual`(절차적 → GLB) 인터페이스 |
+| 스키마 검증 | 부품 YAML(Pydantic), 제스처 이벤트·도구 호출(JSON Schema) |
+| 프라이버시 | 영상 프레임 저장·전송 금지. 랜드마크만 |
+| 정직한 표현 | 게임 물리 ≠ 공학 해석, 홀로그램 유사 ≠ 홀로그램. 화면에 고지 문구 |
+
+### 1.3 디렉토리 설계
+
+```
+holoforge-ai-lab/
+├─ frontend/                  Vite + React + TS + R3F + Zustand + Vitest
+│  └─ src/
+│     ├─ features/
+│     │  ├─ commands/         Command 타입, CommandBus, Mouse/Keyboard/Gesture 소스
+│     │  ├─ camera/           getUserMedia, 권한 처리
+│     │  ├─ hand-tracking/    HandTracker, HandFrame, 오버레이
+│     │  ├─ gestures/         features, ruleClassifier, stateMachine, filters (순수 TS)
+│     │  ├─ assembly/         조립 모드 UI, 슬롯 고스트, 진행률
+│     │  ├─ simulation/       작동 모드, 회전 애니메이션
+│     │  ├─ ai-tutor/         튜터 패널
+│     │  └─ metrics/          지연 계측, 결과 화면
+│     ├─ three/               씬, 카메라, parts/(절차적 기어·축·베이스·커버)
+│     ├─ services/            api 클라이언트
+│     ├─ store/               Zustand
+│     └─ types/
+├─ backend/                   FastAPI + Pydantic v2 + pytest + Ruff
+│  ├─ app/
+│  │  ├─ api/                 라우터
+│  │  ├─ core/                설정, model_loader, db
+│  │  ├─ assembly/            engine, 규칙, 기구 계산
+│  │  ├─ gestures/            Python 규칙 분류기(평가용 포팅)
+│  │  ├─ tools/               AI 도구 + 레지스트리
+│  │  └─ ai/                  LLMAdapter, Ollama, Mock, tutor loop
+│  ├─ scripts/                eval_gestures, eval_tool_calls, export_schemas
+│  └─ tests/
+├─ models/gearbox/            parts.yaml, connections.yaml, assembly-steps.yaml
+├─ schemas/                   gesture-event.schema.json, tool-calls.schema.json
+├─ datasets/gestures/         raw/ (동의받은 랜드마크 JSONL만)
+├─ evals/                     gesture-cases, assembly-cases, tool-call-cases (.jsonl), reports/
+├─ docs/
+└─ .github/workflows/ci.yml
+```
+
+### 1.4 기어박스 모델 (D-001)
+
+| 단계 | 부품 | 비고 |
+|---|---|---|
+| 1 | `base-plate` | 기준 |
+| 2 | `shaft-input`, `shaft-idler`, `shaft-output` | x = 0 / 0.9 / 2.4 |
+| 3 | `gear-input-12t`, `gear-idler-24t`, `gear-output-36t` | 모듈 0.05, 각 축이 부모 |
+| 4 | `top-cover` | yaw 0°/180° 제약 |
+
+감속비 3:1, 입력·출력 같은 방향, 아이들러 반대 방향.
+
+### 1.5 API
+
+| 메서드 | 경로 | 단계 |
+|---|---|---|
+| GET | `/api/health` | P1 |
+| GET | `/api/models/gearbox` | P1 |
+| POST | `/api/sessions` | P1 |
+| GET | `/api/sessions/{id}` | P1 |
+| POST | `/api/sessions/{id}/attempt` | P1 |
+| POST | `/api/sessions/{id}/reset-step` | P1 |
+| GET | `/api/sessions/{id}/mechanism?input_rpm=` | P1 |
+| GET | `/api/sessions/{id}/events` | P3 |
+| POST | `/api/sessions/{id}/tutor` | P4 |
+
+## 2. 단계별 구현 계획
+
+### Phase 1 — 뼈대 + 부품 데이터 + Assembly Engine + 마우스 3D
+
+목표: 웹캠 없이 기어박스가 보이고, 조립 판정 API가 테스트로 검증됨.
+
+| ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
+|---|---|---|---|---|---|
+| P1-1 | 모노레포 뼈대 | frontend/, backend/, README, LICENSE, .gitignore, .env.example | `npm run build` 성공, `uvicorn` 기동 후 `GET /api/health` = 200 | 대기 | |
+| P1-2 | 부품 YAML + 로더 | models/gearbox/*.yaml, model_loader.py | 로더 테스트 통과, 참조 무결성·기어 중심 거리 검사 통과 | 대기 | |
+| P1-3 | Assembly Engine | engine.py, assembly-cases.jsonl | 오류 8종 + 전체 조립 + 기구 상태(출력 rpm = 입력/3) pytest 통과 | 대기 | |
+| P1-4 | 세션 API + SQLite | api/, db.py | TestClient로 세션 생성 → 전체 조립 → mechanism 응답 확인 | 대기 | |
+| P1-5 | 3D 씬 + Command 계층 | three/parts/, features/commands/ | 브라우저에서 8부품 표시, 마우스 드래그 회전, Vitest(CommandBus) 통과 | 대기 | |
+| P1-6 | CI + 기본 문서 | ci.yml, architecture.md, licenses.md, simulation-limitations.md | 로컬에서 ruff·pytest·tsc·vitest·build 전부 통과 | 대기 | |
+
+### Phase 2 — 손 추적 + 제스처 + 안정화 + 녹화
+
+목표: 웹캠으로 부품을 집어 옮기고, 펼친 손으로 모델 회전.
+
+| ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
+|---|---|---|---|---|---|
+| P2-1 | 카메라 | features/camera/ | 권한 허용 시 미리보기, 거부 시 에러 UI | 대기 | |
+| P2-2 | HandTracker | features/hand-tracking/ | 손 올리면 랜드마크 오버레이 + fps ≥ 24 표시 | 대기 | |
+| P2-3 | 분류기 + 상태 머신 + 필터 | features/gestures/, gesture-cases.jsonl, Python 포팅 | Vitest·pytest 동일 케이스 통과, HUD에 제스처 표시 | 대기 | |
+| P2-4 | GestureCommandSource + 3D 연결 | 드래그 평면, 손 커서 | 집기로 부품 이동, 펼친 손 회전, 주먹 취소 수동 확인 | 대기 | |
+| P2-5 | 녹화 화면 + 지연 계측 | /record, metrics/ | 2초 녹화 → JSONL 다운로드, HUD p50/p95 표시 | 대기 | |
+| P2-6 | 이벤트 스키마 + 문서 | schemas/gesture-event.schema.json, gesture-spec.md | 프론트·백엔드 스키마 검증 테스트 통과 | 대기 | |
+
+### Phase 3 — 분해·조립·작동 모드
+
+목표: 조립 성공·실패가 화면에 나오고, 작동 모드에서 기어 방향·속도가 맞음.
+
+| ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
+|---|---|---|---|---|---|
+| P3-1 | 모드 상태 + 탭 | store, SET_MODE | 탭·단축키로 6개 모드 전환 | 대기 | |
+| P3-2 | 분해 모드 | explode 애니메이션, 부품 목록 | E키로 분해, 목록 클릭 시 포커스 | 대기 | |
+| P3-3 | 조립 모드 | 슬롯 고스트, attempt 연동, 오류 토스트, 진행률 | 올바른 슬롯 스냅, 잘못된 슬롯/순서/방향 오류 표시 | 대기 | |
+| P3-4 | 작동 모드 | rpm 슬라이더, 방향 화살표 | 아이들러 반대 방향, 출력 1/3 속도 | 대기 | |
+| P3-5 | 이벤트 로그 + 테스트 | events API, assembly-cases 10+ | API 통합 테스트 통과 | 대기 | |
+
+### Phase 4 — AI 튜터 + 평가 + 결과 화면
+
+목표: AI가 도구로 실제 상태를 조회해 설명하고, 평가 리포트가 생성됨.
+
+| ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
+|---|---|---|---|---|---|
+| P4-1 | LLMAdapter (Mock/Ollama) | app/ai/ | Mock으로 응답, Ollama 없으면 degraded 폴백 | 대기 | |
+| P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 대기 | |
+| P4-3 | 튜터 루프 + API | /tutor | "작은 기어 역할?" → get_part_info 호출 후 답변 | 대기 | |
+| P4-4 | 튜터 화면 | features/ai-tutor/ | 질문 → 답변 + 도구 내역 표시, "왜 틀렸어?" 버튼 | 대기 | |
+| P4-5 | 평가 스크립트 | eval_gestures.py, eval_tool_calls.py, reports/ | 두 스크립트 실행 → 리포트 생성 | 대기 | |
+| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 대기 | |
+
+## 3. 완료 조건 추적 (spec §22)
+
+| # | 시나리오 | 단계 | 상태 |
+|---|---|---|---|
+| 1 | 카메라 권한 허용 | P2-1 | 대기 |
+| 2 | 손 감지 | P2-2 | 대기 |
+| 3 | 현재 제스처 표시 | P2-3 | 대기 |
+| 4 | 집기로 부품 선택 | P2-4 | 대기 |
+| 5 | 손 이동으로 부품 이동 | P2-4 | 대기 |
+| 6 | 손 움직임으로 모델 회전 | P2-4 | 대기 |
+| 7 | 올바른 위치에서 조립 | P3-3 | 대기 |
+| 8 | 잘못된 위치에서 오류 표시 | P3-3 | 대기 |
+| 9 | AI에게 부품 역할 질문 | P4-4 | 대기 |
+| 10 | AI가 실제 데이터 조회 후 설명 | P4-3 | 대기 |
+| 11 | 작동 모드 회전 방향 확인 | P3-4 | 대기 |
+| 12 | 평가 스크립트로 정확도·지연 측정 | P4-5 | 대기 |
+
+## 4. 위험과 대응
+
+| 위험 | 대응 | 확인 시점 |
+|---|---|---|
+| 제스처 오인식·떨림 | 손 크기 정규화, 히스테리시스, 유지 프레임, One Euro, 마우스 폴백 | P2-3 |
+| 2D 손 → 3D 배치 | 드래그 평면, 넓은 스냅 반경, 슬롯 고스트 | P2-4, P3-3 |
+| 로컬 LLM 품질·속도 | think=false, 도구 최소화, Mock 백업, 숫자 근거 검사 | P4-3 |
+| 브라우저 성능 | 640×480, 그림자 최소, 필요 시 Worker | P2-2 |
+| 에셋 제작 시간 | 절차적 지오메트리 | P1-5 |
