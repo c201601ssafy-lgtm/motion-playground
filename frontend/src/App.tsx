@@ -5,6 +5,9 @@ import { useCamera } from "./features/camera/useCamera";
 import { commandBus } from "./features/commands/commandBus";
 import { KeyboardCommandSource } from "./features/commands/keyboardSource";
 import { MouseCommandSource } from "./features/commands/mouseSource";
+import { GestureHud } from "./features/gestures/GestureHud";
+import { installDebugApi } from "./features/gestures/simulator";
+import { useGesturePipeline } from "./features/gestures/useGesturePipeline";
 import { TrackingStatus } from "./features/hand-tracking/TrackingStatus";
 import { useHandTracking } from "./features/hand-tracking/useHandTracking";
 import { getModel } from "./services/api";
@@ -20,6 +23,8 @@ export default function App() {
   const camera = useCamera();
   const overlayRef = useRef<HTMLCanvasElement>(null);
   useHandTracking(camera.videoRef, overlayRef, camera.status === "on");
+  useGesturePipeline();
+  useEffect(installDebugApi, []);
   const selected = model?.parts.find((p) => p.part_id === selectedId);
 
   useEffect(() => {
@@ -69,6 +74,7 @@ export default function App() {
           <TrackingStatus />
         </CameraPanel>
         <aside className={styles.hud}>
+          <GestureHud />
           <div>
             <strong>마지막 명령</strong> {lastCommand ?? "-"}
           </div>

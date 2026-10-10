@@ -174,3 +174,11 @@ class LLMAdapter(Protocol):
 - SLOT_OCCUPIED는 "가장 가까운 슬롯이 다른 부품 자리이고 이미 차 있음"일 때. 비어 있으면 WRONG_SLOT.
 - TOO_FAR는 조립 시도가 아니므로 `last_error`에 기록하지 않음.
 - 기구 계산용으로 `meta.input_part_id`, `meta.output_part_id` 추가. 커버 없이도 작동 가능(operable) 판정.
+
+## D-014 손바닥 펼치기 판정에서 엄지 제외 / 주먹·집기 구분 (D-002 보완, 2026-10-11)
+
+- OPEN_PALM = 검지·중지·약지·소지 펼침(엄지 무관). MediaPipe 샘플 손 사진에서 엄지가 가려져 OPEN_PALM이 안 잡힘 → 엄지가 가장 불안정한 부위라 판정에서 뺌.
+- FIST = 네 손가락이 "접힘"(손끝이 PIP보다 손목에 가까움). 단순히 "펴지지 않음"이면 집기(검지 반쯤 굽힘)와 구분이 안 됨.
+- PINCH = 정규화 집기 거리 < 0.35(유지 중엔 0.5) **그리고 검지가 접히지 않음**. 주먹 쥘 때 엄지·검지가 가까워지는 오인식 방지.
+- 우선순위 PINCH > OPEN_PALM > FIST > NONE.
+- 분류기 동일성: `evals/gesture-cases.jsonl`(합성 33케이스)을 TS(Vitest)와 Python(pytest)이 같은 결과로 통과해야 함.
