@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { HandCursor } from "../features/gestures/gestureCommandSource";
+import type { Mode } from "../modes";
 import type { MechanismModel, Vec3 } from "../types/model";
 
 const PITCH_LIMIT = 1.2;
@@ -17,6 +18,8 @@ export interface DropEvent {
 }
 
 export interface LabState {
+  mode: Mode;
+  setMode: (mode: Mode) => void;
   model: MechanismModel | null;
   loadError: string | null;
   yaw: number;
@@ -48,6 +51,8 @@ export interface LabState {
 }
 
 export const useLabStore = create<LabState>((set) => ({
+  mode: "lab",
+  setMode: (mode) => set({ mode }),
   model: null,
   loadError: null,
   yaw: -0.4,

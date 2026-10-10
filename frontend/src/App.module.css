@@ -105,3 +105,26 @@
 .hud button:disabled {
   opacity: 0.5;
 }
+
+.lastCommand {
+  font-size: 12px;
+}
+
+.nav {
+  flex-wrap: wrap;
+}
+
+.hud {
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+
+@media (max-width: 720px) {
+  .header {
+    flex-wrap: wrap;
+  }
+  .nav {
+    margin-left: 0;
+    width: 100%;
+  }
+}

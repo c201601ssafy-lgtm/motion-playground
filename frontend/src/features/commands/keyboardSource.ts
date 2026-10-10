@@ -1,6 +1,7 @@
+import { MODES } from "../../modes";
 import type { Command, CommandBusLike, CommandSource } from "./types";
 
-/** 키보드 → Command. E=분해, A=전체 조립, R=단계 리셋, Esc=취소, 방향키=회전. */
+/** 키보드 → Command. E=분해, A=전체 조립, R=단계 리셋, Esc=취소, 방향키=모델 회전, [ ]=잡은 부품 회전, 1~7=모드. */
 
 const ROTATE_STEP = Math.PI / 18; // 10°
 
@@ -13,6 +14,9 @@ export const KEY_BINDINGS: Record<string, Command> = {
   arrowright: { type: "ROTATE_MODEL", dYaw: ROTATE_STEP, dPitch: 0 },
   arrowup: { type: "ROTATE_MODEL", dYaw: 0, dPitch: -ROTATE_STEP },
   arrowdown: { type: "ROTATE_MODEL", dYaw: 0, dPitch: ROTATE_STEP },
+  "[": { type: "ROTATE_PART", dYawDeg: -15 },
+  "]": { type: "ROTATE_PART", dYawDeg: 15 },
+  ...Object.fromEntries(MODES.map((m) => [m.key, { type: "SET_MODE", mode: m.id } as Command])),
 };
 
 interface KeyLike {
