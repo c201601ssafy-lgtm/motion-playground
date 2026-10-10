@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jngbnss/holoforge-ai-lab/schemas/gesture-record.schema.json",
+  "title": "GestureRecord",
+  "description": "녹화 화면이 내보내는 JSONL 한 줄 (D-008). 랜드마크만 담고 영상은 담지 않는다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "subject_id", "lighting", "label", "recorded_at", "duration_ms", "fps", "frames"],
+  "properties": {
+    "schema": { "const": "holoforge.gesture-record.v1" },
+    "source": { "enum": ["webcam", "synthetic"] },
+    "subject_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,16}$" },
+    "lighting": { "enum": ["bright", "normal", "dim"] },
+    "label": { "enum": ["NONE", "OPEN_PALM", "PINCH", "FIST"] },
+    "recorded_at": { "type": "string", "format": "date-time" },
+    "duration_ms": { "type": "number", "exclusiveMinimum": 0 },
+    "fps": { "type": "number", "minimum": 0 },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["t", "landmarks", "handedness", "handedness_score"],
+        "properties": {
+          "t": { "type": "number", "minimum": 0 },
+          "landmarks": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "array",
+                "minItems": 21,
+                "maxItems": 21,
+                "items": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } }
+              }
+            ]
+          },
+          "handedness": { "enum": ["left", "right", null] },
+          "handedness_score": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

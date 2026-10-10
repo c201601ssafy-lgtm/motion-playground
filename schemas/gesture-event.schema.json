@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jngbnss/holoforge-ai-lab/schemas/gesture-event.schema.json",
+  "title": "GestureEvent",
+  "description": "브라우저·Python 공통 제스처 이벤트 (D-004). 상태 머신이 확정한 제스처의 start/hold/end.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "phase", "position", "delta", "confidence", "timestamp"],
+  "properties": {
+    "type": { "enum": ["OPEN_PALM", "PINCH", "FIST"] },
+    "phase": { "enum": ["start", "hold", "end"] },
+    "position": {
+      "description": "정규화 이미지 좌표(거울 반전 전), 필터 적용 후",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number", "minimum": -0.5, "maximum": 1.5 },
+        "y": { "type": "number", "minimum": -0.5, "maximum": 1.5 },
+        "z": { "type": "number" }
+      }
+    },
+    "delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "timestamp": { "type": "number", "minimum": 0 }
+  }
+}

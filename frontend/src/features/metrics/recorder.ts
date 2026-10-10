@@ -22,7 +22,7 @@ export interface RecordedFrame {
 
 export interface GestureRecord extends RecordMeta {
   schema: "holoforge.gesture-record.v1";
-  source: "webcam";
+  source: "webcam" | "synthetic";
   recorded_at: string;
   duration_ms: number;
   fps: number;
