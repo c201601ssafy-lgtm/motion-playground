@@ -15,6 +15,7 @@ from app.assembly.schemas import (
     GearState,
     MechanismState,
 )
+from app.core.korean import josa
 from app.core.model_schema import MechanismModel, Slot, Vec3
 
 ORIENTATION_TOLERANCE_DEG = 15.0
@@ -100,7 +101,7 @@ class AssemblyEngine:
             return self._fail(pid, ErrorType.UNKNOWN_PART, f"알 수 없는 부품 '{pid}'입니다.")
         if self.is_placed(pid):
             return self._fail(
-                pid, ErrorType.ALREADY_PLACED, f"{part.name}은(는) 이미 조립됐습니다."
+                pid, ErrorType.ALREADY_PLACED, f"{josa(part.name, '은/는')} 이미 조립됐습니다."
             )
 
         picked = self._pick_slot(req)
@@ -118,7 +119,7 @@ class AssemblyEngine:
                 return self._fail(
                     pid,
                     ErrorType.SLOT_OCCUPIED,
-                    f"그 자리에는 이미 {occupant.name if occupant else '다른 부품'}이(가) 있습니다.",
+                    f"그 자리에는 이미 {josa(occupant.name if occupant else '다른 부품', '이/가')} 있습니다.",
                     **base,
                 )
             expected = self.model.part(slot.accepts_part_id)
@@ -135,7 +136,7 @@ class AssemblyEngine:
             return self._fail(
                 pid,
                 ErrorType.MISSING_PARENT,
-                f"먼저 {parent.name if parent else slot.parent_part_id}을(를) 조립해야 합니다.",
+                f"먼저 {josa(parent.name if parent else slot.parent_part_id, '을/를')} 조립해야 합니다.",
                 missing_part_ids=[slot.parent_part_id],
                 **base,
             )
@@ -164,7 +165,7 @@ class AssemblyEngine:
             return self._fail(
                 pid,
                 ErrorType.WRONG_ORIENTATION,
-                f"{part.name}이(가) {axis_angle:.0f}° 기울어져 있습니다. 축 방향을 맞추세요.",
+                f"{josa(part.name, '이/가')} {axis_angle:.0f}° 기울어져 있습니다. 축 방향을 맞추세요.",
                 axis_angle_deg=round(axis_angle, 2),
                 **base,
             )
