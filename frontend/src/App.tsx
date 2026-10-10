@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
+import { TutorPanel } from "./features/ai-tutor/TutorPanel";
+import { useTutorMode } from "./features/ai-tutor/useTutorMode";
 import { AssemblyPanel, AssemblyToast } from "./features/assembly/AssemblyPanel";
 import { PartListPanel } from "./features/assembly/PartListPanel";
 import { useAssemblyMode } from "./features/assembly/useAssemblyMode";
@@ -77,6 +79,8 @@ function ModePanel({ mode }: { mode: Mode }) {
       return <AssemblyPanel />;
     case "operate":
       return <OperatePanel />;
+    case "tutor":
+      return <TutorPanel />;
     default:
       return (
         <>
@@ -103,6 +107,7 @@ export default function App() {
   useDisassembleMode();
   useAssemblyMode();
   useOperateMode();
+  useTutorMode();
   useEffect(installDebugApi, []);
 
   useEffect(() => {

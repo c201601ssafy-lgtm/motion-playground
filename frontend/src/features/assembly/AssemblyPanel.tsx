@@ -1,5 +1,7 @@
 import { useAssemblyStore } from "../../store/assemblyStore";
 import { useLabStore } from "../../store/labStore";
+import { askWhyWrong } from "../ai-tutor/useTutor";
+import { WHY_WRONG_QUESTION } from "../ai-tutor/tutorLogic";
 import { commandBus } from "../commands/commandBus";
 import { startNewSession } from "./useAssemblyMode";
 
@@ -31,7 +33,8 @@ export function AssemblyPanel() {
   const model = useLabStore((s) => s.model);
   const guide = useLabStore((s) => s.guide);
   const dragging = useLabStore((s) => s.draggingPartId);
-  const { snapshot, error, busy, attempts, errors, startedAt, completedAt } = useAssemblyStore();
+  const { snapshot, error, busy, attempts, errors, startedAt, completedAt, lastResult } = useAssemblyStore();
+  const canAskWhy = !!lastResult && !lastResult.is_valid && lastResult.error_type !== "TOO_FAR";
   if (!model) return null;
   const steps = model.steps.length;
   const current = model.steps.find((s) => s.step === snapshot?.current_step);
@@ -59,6 +62,11 @@ export function AssemblyPanel() {
           가장 가까운 결합 지점 {guide.slotId} · 거리 {guide.distance.toFixed(2)}
           {guide.inRange ? " (놓으면 판정)" : ""}
         </div>
+      )}
+      {canAskWhy && (
+        <button type="button" onClick={() => askWhyWrong(WHY_WRONG_QUESTION)} data-testid="ask-why">
+          🤖 왜 틀렸어? (AI 튜터)
+        </button>
       )}
       <div style={{ fontSize: 12, color: "#8b949e" }}>
         시도 {attempts}회 · 오류 {errors}회{elapsed ? ` · 완료 시간 ${elapsed}초` : ""}
