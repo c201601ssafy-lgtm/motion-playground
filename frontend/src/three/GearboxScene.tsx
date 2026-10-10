@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { nearestSlot } from "../features/assembly/assemblyLogic";
 import { commandBus } from "../features/commands/commandBus";
+import { MechanismOverlay } from "../features/simulation/MechanismOverlay";
 import type { ScreenPoint } from "../features/commands/types";
 import { useAssemblyStore } from "../store/assemblyStore";
 import { type PartPose, useLabStore } from "../store/labStore";
@@ -324,6 +325,7 @@ function SceneContent() {
         </group>
         <group position={[-MODEL_CENTER[0], -MODEL_CENTER[1], -MODEL_CENTER[2]]}>
           <SlotGhost />
+          <MechanismOverlay />
         </group>
       </group>
     </Framing>

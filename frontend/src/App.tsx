@@ -14,6 +14,8 @@ import { gestureEventBus } from "./features/gestures/gestureEventBus";
 import { GestureHud } from "./features/gestures/GestureHud";
 import { installDebugApi } from "./features/gestures/simulator";
 import { useGesturePipeline } from "./features/gestures/useGesturePipeline";
+import { OperatePanel } from "./features/simulation/OperatePanel";
+import { useOperateMode } from "./features/simulation/useOperateMode";
 import { TrackingStatus } from "./features/hand-tracking/TrackingStatus";
 import { useHandTracking } from "./features/hand-tracking/useHandTracking";
 import { LatencyPanel } from "./features/metrics/LatencyPanel";
@@ -73,6 +75,8 @@ function ModePanel({ mode }: { mode: Mode }) {
       return <PartListPanel />;
     case "assemble":
       return <AssemblyPanel />;
+    case "operate":
+      return <OperatePanel />;
     default:
       return (
         <>
@@ -98,6 +102,7 @@ export default function App() {
   useInputSources(canvas);
   useDisassembleMode();
   useAssemblyMode();
+  useOperateMode();
   useEffect(installDebugApi, []);
 
   useEffect(() => {

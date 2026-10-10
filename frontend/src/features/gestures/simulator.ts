@@ -75,6 +75,8 @@ export const handSimulator = {
       focus: s.focusPartId,
       mode: s.mode,
       offline: s.offline,
+      spins: s.spins,
+      hidden: s.hiddenParts,
     };
   },
   /** 부품의 현재 화면 좌표 */
