@@ -23,6 +23,7 @@ def export(model_id: str = "gearbox") -> Path:
     out.write_text(
         json.dumps(model.model_dump(mode="json"), ensure_ascii=False, indent=1) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     return out
 

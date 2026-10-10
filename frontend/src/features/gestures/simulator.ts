@@ -4,7 +4,9 @@
 //   holoforgeDebug.hand(null)                      // 손 치우기
 //   holoforgeDebug.state()                         // 씬 상태 확인
 
+import { useAssemblyStore } from "../../store/assemblyStore";
 import { useLabStore } from "../../store/labStore";
+import { projectModelPoint, projectPart } from "../../three/sceneProbe";
 import { useTrackingStore } from "../../store/trackingStore";
 import { handFrameBus } from "../hand-tracking/frameBus";
 import { LM } from "../hand-tracking/types";
@@ -74,6 +76,23 @@ export const handSimulator = {
       mode: s.mode,
       offline: s.offline,
     };
+  },
+  /** 부품의 현재 화면 좌표 */
+  screenOfPart(partId: string) {
+    return projectPart(partId);
+  },
+  /** 모델 좌표의 화면 좌표 */
+  screenOfPoint(x: number, y: number, z: number) {
+    return projectModelPoint([x, y, z]);
+  },
+  /** 결합 지점의 화면 좌표 */
+  screenOfSlot(slotId: string) {
+    const slot = useLabStore.getState().model?.slots.find((s) => s.slot_id === slotId);
+    return slot ? projectModelPoint(slot.position) : null;
+  },
+  assembly() {
+    const a = useAssemblyStore.getState();
+    return { sessionId: a.sessionId, snapshot: a.snapshot, lastResult: a.lastResult, toast: a.toast, attempts: a.attempts, errors: a.errors };
   },
   poses: Object.keys(POSES) as PoseName[],
 };

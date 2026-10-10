@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
+import { AssemblyPanel, AssemblyToast } from "./features/assembly/AssemblyPanel";
 import { PartListPanel } from "./features/assembly/PartListPanel";
+import { useAssemblyMode } from "./features/assembly/useAssemblyMode";
 import { useDisassembleMode } from "./features/assembly/useDisassembleMode";
 import { CameraPanel } from "./features/camera/CameraPanel";
 import { useCamera } from "./features/camera/useCamera";
@@ -69,6 +71,8 @@ function ModePanel({ mode }: { mode: Mode }) {
       return <SelectedPartCard />;
     case "disassemble":
       return <PartListPanel />;
+    case "assemble":
+      return <AssemblyPanel />;
     default:
       return (
         <>
@@ -93,6 +97,7 @@ export default function App() {
   useGesturePipeline();
   useInputSources(canvas);
   useDisassembleMode();
+  useAssemblyMode();
   useEffect(installDebugApi, []);
 
   useEffect(() => {
@@ -121,6 +126,7 @@ export default function App() {
       </header>
       <main className={styles.stage}>
         <GearboxScene onCanvas={setCanvas} />
+        <AssemblyToast />
         {loadError && <div className={styles.error}>모델을 불러오지 못했습니다: {loadError}</div>}
         {offline && (
           <div className={styles.error} data-testid="offline-banner">
