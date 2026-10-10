@@ -14,6 +14,9 @@
 | vite | 8.3.4 | MIT | 없음 |
 | vitest | 5.0.3 | MIT | 없음 |
 | typescript | 7.0.2 | Apache-2.0 | 없음 |
+| @mediapipe/tasks-vision | 1.1.0 | Apache-2.0 | 없음 (wasm은 jsDelivr CDN에서 로드) |
+| ajv / ajv-formats (dev) | 8.20.0 / 3.0.1 | MIT | 없음 |
+| tsx (dev) | 4.23.15 | MIT | 없음 |
 
 ## 백엔드 (Python)
 
@@ -26,14 +29,24 @@
 | pytest (dev) | 9.1.1 | MIT | 없음 |
 | httpx (dev) | 0.28.1 | BSD-3-Clause | 없음 |
 | ruff (dev) | 0.17.0 | MIT | 없음 |
+| httpx | 0.28.1 | BSD-3-Clause | 없음 (Ollama 호출) |
+| jsonschema (dev) | 4.26.0 | MIT | 없음 |
 
-## 예정 (Phase 2~4)
+## 모델·런타임
 
-| 이름 | 용도 | 라이선스 | 비고 |
+| 이름 | 버전 | 용도 | 라이선스 | 배포 방식 |
+|---|---|---|---|---|
+| MediaPipe Hand Landmarker (`hand_landmarker.task` float16) | 2023 릴리스 | 손 랜드마크 | Apache-2.0 | Google CDN에서 브라우저가 직접 로드, 저장소에 포함 안 함 |
+| Qwen3-8B (`qwen3:8b` Q4_K_M) | Ollama 레지스트리 | AI 튜터 | Apache-2.0 | 사용자가 `ollama pull`, 가중치 미배포 |
+| Ollama | 0.40.2 | LLM 런타임 | MIT | 별도 프로세스, HTTP로만 연결 |
+
+## 데이터·에셋
+
+| 이름 | 출처 | 라이선스 | 비고 |
 |---|---|---|---|
-| @mediapipe/tasks-vision | 손 랜드마크 | Apache-2.0 | 모델 파일(hand_landmarker.task)도 Apache-2.0 |
-| Qwen3-8B | AI 튜터 LLM | Apache-2.0 | Ollama로 로컬 실행, 가중치 미배포 |
-| Ollama | LLM 런타임 | MIT | 별도 프로세스, HTTP로만 연결 |
+| 기어박스 3D 형상 | 자체 코드 (`frontend/src/three/gearShape.ts`) | 프로젝트 MIT | 외부 에셋 없음 |
+| 합성 제스처 데이터 (`evals/gesture-*.jsonl`) | 자체 생성 스크립트 | 프로젝트 MIT | `source: synthetic` |
+| MediaPipe 샘플 손 사진 | storage.googleapis.com/mediapipe-tasks | Google 샘플 | 로컬 스모크 테스트에만 사용, 저장소에 포함 안 함 |
 
 ## GPL 계열 검토
 

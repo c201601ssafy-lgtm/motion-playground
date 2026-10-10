@@ -135,7 +135,7 @@ def answer(
         resp = adapter.chat(messages, specs)
         if not resp.tool_calls:
             if not used and not nudged:
-                # 도구 없이 답하려 하면 한 번 되묻는다 (사실 확인 강제, docs/experiments.md E-03)
+                # 도구 없이 답하려 하면 한 번 되묻는다 (사실 확인 강제, docs/experiments.md E-01)
                 nudged = True
                 messages.append(Message(role="assistant", content=resp.content))
                 messages.append(Message(role="user", content=REQUIRE_TOOL_PROMPT))

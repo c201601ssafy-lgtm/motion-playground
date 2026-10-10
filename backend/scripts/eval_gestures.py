@@ -202,6 +202,10 @@ def to_markdown(report: dict, source: str, inputs: list[str]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows 콘솔(cp949)에서도 한국어·기호를 출력할 수 있게
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("inputs", nargs="*", type=Path)
     ap.add_argument("--out", type=Path, default=REPO_ROOT / "evals" / "reports")

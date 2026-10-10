@@ -22,6 +22,7 @@ import { TrackingStatus } from "./features/hand-tracking/TrackingStatus";
 import { useHandTracking } from "./features/hand-tracking/useHandTracking";
 import { LatencyPanel } from "./features/metrics/LatencyPanel";
 import { RecordPanel } from "./features/metrics/RecordPanel";
+import { ResultsPanel } from "./features/metrics/ResultsPanel";
 import { MODES, type Mode } from "./modes";
 import { getModel } from "./services/api";
 import { useLabStore } from "./store/labStore";
@@ -81,13 +82,10 @@ function ModePanel({ mode }: { mode: Mode }) {
       return <OperatePanel />;
     case "tutor":
       return <TutorPanel />;
+    case "results":
+      return <ResultsPanel />;
     default:
-      return (
-        <>
-          <SelectedPartCard />
-          <p className={styles.help}>이 모드는 준비 중입니다.</p>
-        </>
-      );
+      return <SelectedPartCard />;
   }
 }
 

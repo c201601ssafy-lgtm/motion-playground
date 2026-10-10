@@ -153,6 +153,10 @@ def to_markdown(provider: str, summary: dict, results: list[dict]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows 콘솔(cp949)에서도 한국어·기호를 출력할 수 있게
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--provider", choices=["mock", "ollama"], default="mock")
     ap.add_argument("--cases", type=Path, default=REPO_ROOT / "evals" / "tool-call-cases.jsonl")

@@ -7,8 +7,8 @@
     "execution_success_rate": 1.0,
     "ungrounded_answer_rate": 0.0,
     "fact_match_rate": 1.0,
-    "latency_ms_p50": 15.4,
-    "latency_ms_max": 61.9,
+    "latency_ms_p50": 4.5,
+    "latency_ms_max": 28.0,
     "degraded_cases": 0
   },
   "results": [
@@ -30,7 +30,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "입력 기어 (12T): 입력축에 끼우는 가장 작은 기어. 이빨 12개. 빠르게 돌며 회전을 다음 기어로 넘긴다. 작은 기어가 큰 기어를 돌리면 속도는 줄고 힘(토크)은 커진다. 이빨은 12개입니다. 아이들러 기어 (24T)와(과) 맞물립니다.",
-      "latency_ms": 43.1,
+      "latency_ms": 14.9,
       "degraded": false
     },
     {
@@ -51,7 +51,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "아이들러 기어 (24T): 입력 기어와 출력 기어 사이에 있는 중간 기어. 이빨 24개. 회전 방향을 한 번 더 뒤집어 출력 기어가 입력 기어와 같은 방향으로 돌게 한다. 전체 기어비에는 영향을 주지 않는다. 이빨은 24개입니다. 입력 기어 (12T), 출력 기어 (36T)와(과) 맞물립니다.",
-      "latency_ms": 36.9,
+      "latency_ms": 4.5,
       "degraded": false
     },
     {
@@ -72,7 +72,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "출력축: 감속된 회전이 밖으로 나가는 축. 출력 기어의 느리고 강한 회전을 바퀴나 장치로 내보낸다.",
-      "latency_ms": 4.3,
+      "latency_ms": 4.0,
       "degraded": false
     },
     {
@@ -93,7 +93,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "상부 커버: 축 윗부분을 잡아 주고 기어를 덮는 판. 축이 기울지 않게 위쪽을 고정하고, 회전하는 기어에 손이 닿지 않게 막는다.",
-      "latency_ms": 4.2,
+      "latency_ms": 4.7,
       "degraded": false
     },
     {
@@ -114,7 +114,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "입력 30rpm일 때 입력 기어 (12T) 30rpm 반시계(위에서 볼 때), 아이들러 기어 (24T) 15rpm 시계(위에서 볼 때), 출력 기어 (36T) 10rpm 반시계(위에서 볼 때). 맞물린 두 기어는 접점에서 이빨이 서로 밀어 주기 때문에 반대 방향으로 돕니다. 전체 감속비는 3:1이라 출력은 입력보다 느리게 돌고, 손실이 없다면 그만큼 토크가 커집니다.",
-      "latency_ms": 19.9,
+      "latency_ms": 3.9,
       "degraded": false
     },
     {
@@ -135,7 +135,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "입력 30rpm일 때 입력 기어 (12T) 30rpm 반시계(위에서 볼 때), 아이들러 기어 (24T) 15rpm 시계(위에서 볼 때), 출력 기어 (36T) 10rpm 반시계(위에서 볼 때). 맞물린 두 기어는 접점에서 이빨이 서로 밀어 주기 때문에 반대 방향으로 돕니다. 전체 감속비는 3:1이라 출력은 입력보다 느리게 돌고, 손실이 없다면 그만큼 토크가 커집니다.",
-      "latency_ms": 61.9,
+      "latency_ms": 2.7,
       "degraded": false
     },
     {
@@ -162,7 +162,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "출력 기어 (36T): 출력축에 끼우는 가장 큰 기어. 이빨 36개. 입력 기어보다 3배 많은 이빨을 가져 1/3 속도로 돌고, 이론상 3배의 토크를 낸다(마찰 무시). 이빨은 36개입니다. 아이들러 기어 (24T)와(과) 맞물립니다. 입력 60rpm일 때 입력 기어 (12T) 60rpm 반시계(위에서 볼 때), 아이들러 기어 (24T) 30rpm 시계(위에서 볼 때), 출력 기어 (36T) 20rpm 반시계(위에서 볼 때). 맞물린 두 기어는 접점에서 이빨이 서로 밀어 주기 때문에 반대 방향으로 돕니다. 전체 감속비는 3:1이라 출력은 입력보다 느리게 돌고, 손실이 없다면 그만큼 토크가 커집니다.",
-      "latency_ms": 7.6,
+      "latency_ms": 5.1,
       "degraded": false
     },
     {
@@ -185,7 +185,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "지금은 판정된 조립 오류가 없습니다. 1개 단계를 마쳤고 부품은 1/8개 조립했습니다. 지금은 2단계(축 3개 세우기)입니다.",
-      "latency_ms": 23.8,
+      "latency_ms": 5.1,
       "degraded": false
     },
     {
@@ -208,7 +208,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "베이스 플레이트: 베이스 플레이트의 방향이 90° 틀어져 있습니다. (기대 방향 0°, 현재 90°) 부품을 0° 방향으로 돌려서 놓으세요 (마우스 휠 또는 [ ] 키).",
-      "latency_ms": 19.8,
+      "latency_ms": 7.0,
       "degraded": false
     },
     {
@@ -231,7 +231,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "베이스 플레이트: 베이스 플레이트의 방향이 90° 틀어져 있습니다. (기대 방향 0°, 현재 90°) 부품을 0° 방향으로 돌려서 놓으세요 (마우스 휠 또는 [ ] 키).",
-      "latency_ms": 38.8,
+      "latency_ms": 4.6,
       "degraded": false
     },
     {
@@ -254,7 +254,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "입력 기어 (12T): 먼저 입력축을 조립해야 합니다. 입력축을 먼저 조립한 뒤 다시 놓으세요.",
-      "latency_ms": 3.0,
+      "latency_ms": 4.6,
       "degraded": false
     },
     {
@@ -273,7 +273,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "1개 단계를 마쳤고 부품은 1/8개 조립했습니다. 지금은 2단계(축 3개 세우기)입니다.",
-      "latency_ms": 3.1,
+      "latency_ms": 3.5,
       "degraded": false
     },
     {
@@ -292,7 +292,7 @@
       "facts_ok": true,
       "warnings": [],
       "answer": "모든 부품(8/8)을 조립했습니다. 작동 모드에서 돌려 보세요.",
-      "latency_ms": 10.9,
+      "latency_ms": 4.5,
       "degraded": false
     },
     {
@@ -313,7 +313,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "입력축을 45rpm으로 돌리는 작동 화면을 실행했습니다.",
-      "latency_ms": 4.3,
+      "latency_ms": 3.8,
       "degraded": false
     },
     {
@@ -334,7 +334,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "작동 시뮬레이션을 할 수 없습니다: 입력축 미조립, 아이들러축 미조립, 출력축 미조립, 입력 기어 (12T) 미조립, 아이들러 기어 (24T) 미조립, 출력 기어 (36T) 미조립.",
-      "latency_ms": 3.9,
+      "latency_ms": 4.1,
       "degraded": false
     },
     {
@@ -353,7 +353,7 @@
       "facts_ok": null,
       "warnings": [],
       "answer": "입력축, 아이들러축을(를) 작업대로 되돌렸습니다. 지금은 2단계입니다.",
-      "latency_ms": 31.6,
+      "latency_ms": 28.0,
       "degraded": false
     }
   ]
