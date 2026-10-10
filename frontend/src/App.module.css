@@ -71,3 +71,37 @@
   background: var(--panel);
   border-top: 1px solid #30363d;
 }
+
+.nav {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.nav a {
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.nav a[aria-current="page"] {
+  background: #21262d;
+  color: var(--text);
+}
+
+.hud button,
+.hud select,
+.hud input {
+  font: inherit;
+  color: var(--text);
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.hud button:disabled {
+  opacity: 0.5;
+}

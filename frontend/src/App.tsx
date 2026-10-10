@@ -10,11 +10,14 @@ import { gestureEventBus } from "./features/gestures/gestureEventBus";
 import { GestureHud } from "./features/gestures/GestureHud";
 import { installDebugApi } from "./features/gestures/simulator";
 import { useGesturePipeline } from "./features/gestures/useGesturePipeline";
+import { LatencyPanel } from "./features/metrics/LatencyPanel";
+import { RecordPanel } from "./features/metrics/RecordPanel";
 import { TrackingStatus } from "./features/hand-tracking/TrackingStatus";
 import { useHandTracking } from "./features/hand-tracking/useHandTracking";
 import { getModel } from "./services/api";
 import { useLabStore } from "./store/labStore";
 import { GearboxScene } from "./three/GearboxScene";
+import { useHashRoute } from "./useHashRoute";
 
 export default function App() {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
@@ -23,6 +26,7 @@ export default function App() {
   const selectedId = useLabStore((s) => s.selectedPartId);
   const lastCommand = useLabStore((s) => s.lastCommand);
   const camera = useCamera();
+  const route = useHashRoute();
   const overlayRef = useRef<HTMLCanvasElement>(null);
   useHandTracking(camera.videoRef, overlayRef, camera.status === "on");
   useGesturePipeline();
@@ -67,6 +71,14 @@ export default function App() {
       <header className={styles.header}>
         <h1>HoloForge AI Lab</h1>
         <span className={styles.subtitle}>{model?.meta.name ?? "모델 불러오는 중…"}</span>
+        <nav className={styles.nav}>
+          <a href="#/" aria-current={route === "lab" ? "page" : undefined}>
+            연구실
+          </a>
+          <a href="#/record" aria-current={route === "record" ? "page" : undefined}>
+            데이터 녹화
+          </a>
+        </nav>
       </header>
       <main className={styles.stage}>
         <GearboxScene onCanvas={setCanvas} />
@@ -80,9 +92,11 @@ export default function App() {
           overlay={<canvas ref={overlayRef} />}
         >
           <TrackingStatus />
+          <LatencyPanel />
         </CameraPanel>
         <aside className={styles.hud}>
           <GestureHud />
+          {route === "record" && <RecordPanel />}
           <div>
             <strong>마지막 명령</strong> {lastCommand ?? "-"}
           </div>
