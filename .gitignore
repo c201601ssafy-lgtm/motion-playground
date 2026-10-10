@@ -1,0 +1,25 @@
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Data / runtime
+*.sqlite3
+*.db
+datasets/gestures/raw/
+evals/reports/*
+!evals/reports/.gitkeep
+
+# Env / IDE
+.env
+.idea/
+.vscode/
+.DS_Store

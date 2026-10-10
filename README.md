@@ -10,3 +10,28 @@
 - [구현 계획 / 진행 상태](docs/implementation-plan.md)
 - [결정 기록](docs/decision-log.md)
 - [원본 명세](docs/spec.md)
+
+## 실행
+
+요구: Node 20+, [uv](https://docs.astral.sh/uv/) (Python 3.12 자동 설치)
+
+```bash
+# 백엔드
+cd backend
+uv sync
+uv run uvicorn app.main:app --reload --port 8000
+
+# 프론트엔드 (다른 터미널)
+cd frontend
+npm install
+npm run dev          # http://localhost:5173, /api → localhost:8000 프록시
+```
+
+백엔드 포트를 바꾸면 프론트에 `HOLOFORGE_API_URL=http://localhost:8010 npm run dev`.
+
+## 검사
+
+```bash
+cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest
+cd frontend && npm run typecheck && npm test && npm run build
+```
