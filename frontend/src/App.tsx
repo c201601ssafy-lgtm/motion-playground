@@ -5,6 +5,8 @@ import { useCamera } from "./features/camera/useCamera";
 import { commandBus } from "./features/commands/commandBus";
 import { KeyboardCommandSource } from "./features/commands/keyboardSource";
 import { MouseCommandSource } from "./features/commands/mouseSource";
+import { GestureCommandSource } from "./features/gestures/gestureCommandSource";
+import { gestureEventBus } from "./features/gestures/gestureEventBus";
 import { GestureHud } from "./features/gestures/GestureHud";
 import { installDebugApi } from "./features/gestures/simulator";
 import { useGesturePipeline } from "./features/gestures/useGesturePipeline";
@@ -48,6 +50,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const gestures = new GestureCommandSource(gestureEventBus.subscribe, (c) => useLabStore.getState().setCursor(c));
+    gestures.start(commandBus);
+    return () => gestures.stop();
+  }, []);
+
+  useEffect(() => {
     if (!canvas) return;
     const mouse = new MouseCommandSource(canvas);
     mouse.start(commandBus);
@@ -85,7 +93,7 @@ export default function App() {
             </div>
           )}
           <div className={styles.help}>
-            왼쪽 클릭: 부품 선택 · 빈 곳 드래그/오른쪽 드래그/방향키: 회전 · Esc: 선택 해제
+            🤏 집어서 부품 이동 · ✋ 펼친 손 움직여 회전 · ✊ 취소 / 마우스: 드래그로 이동, 빈 곳·오른쪽 드래그로 회전, Esc 취소
           </div>
         </aside>
       </main>
