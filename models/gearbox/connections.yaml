@@ -1,0 +1,66 @@
+# 조립 슬롯(결합 지점) 정의 (D-005)
+# orientation_rule: axis_only = 축 방향만 검사, axis_and_yaw = 축 + 축 기준 회전각 검사
+# yaw_symmetry_deg: 이 각도만큼 돌려도 같은 모양 (360 = 대칭 없음)
+slots:
+  - slot_id: slot-base
+    accepts_part_id: base-plate
+    parent_part_id: null
+    position: [1.2, -0.05, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_and_yaw
+    yaw_deg: 0
+    yaw_symmetry_deg: 180
+
+  - slot_id: slot-shaft-a
+    accepts_part_id: shaft-input
+    parent_part_id: base-plate
+    position: [0.0, 0.5, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+
+  - slot_id: slot-shaft-b
+    accepts_part_id: shaft-idler
+    parent_part_id: base-plate
+    position: [0.9, 0.3, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+
+  - slot_id: slot-shaft-c
+    accepts_part_id: shaft-output
+    parent_part_id: base-plate
+    position: [2.4, 0.5, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+
+  - slot_id: slot-gear-a
+    accepts_part_id: gear-input-12t
+    parent_part_id: shaft-input
+    position: [0.0, 0.35, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+    meshes_with: [slot-gear-b]
+
+  - slot_id: slot-gear-b
+    accepts_part_id: gear-idler-24t
+    parent_part_id: shaft-idler
+    position: [0.9, 0.35, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+    meshes_with: [slot-gear-a, slot-gear-c]
+
+  - slot_id: slot-gear-c
+    accepts_part_id: gear-output-36t
+    parent_part_id: shaft-output
+    position: [2.4, 0.35, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_only
+    meshes_with: [slot-gear-b]
+
+  - slot_id: slot-cover
+    accepts_part_id: top-cover
+    parent_part_id: base-plate
+    position: [1.2, 0.625, 0.0]
+    axis: [0, 1, 0]
+    orientation_rule: axis_and_yaw
+    yaw_deg: 0
+    yaw_symmetry_deg: 180

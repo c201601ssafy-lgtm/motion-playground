@@ -1,0 +1,18 @@
+# 조립 단계 (D-001, D-006)
+steps:
+  - step: 1
+    title: 베이스 플레이트 놓기
+    slots: [slot-base]
+    requires_steps: []
+  - step: 2
+    title: 축 3개 세우기
+    slots: [slot-shaft-a, slot-shaft-b, slot-shaft-c]
+    requires_steps: [1]
+  - step: 3
+    title: 기어 3개 끼우기
+    slots: [slot-gear-a, slot-gear-b, slot-gear-c]
+    requires_steps: [2]
+  - step: 4
+    title: 상부 커버 덮기
+    slots: [slot-cover]
+    requires_steps: [3]
