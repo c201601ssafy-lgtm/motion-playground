@@ -92,3 +92,37 @@ def test_not_found_and_validation(client: TestClient) -> None:
         client.get(f"/api/sessions/{sid}/mechanism", params={"input_rpm": 10_000}).status_code
         == 422
     )
+
+
+def test_event_log_and_summary(client: TestClient) -> None:
+    sid = client.post("/api/sessions", json={}).json()["session_id"]
+    # 오류 2회(순서·부모), 멂 1회(시도 아님), 그다음 전체 조립
+    client.post(
+        f"/api/sessions/{sid}/attempt",
+        json={"part_id": "shaft-input", "position": [0.0, 0.5, 0.0]},
+    )
+    client.post(
+        f"/api/sessions/{sid}/attempt", json={"part_id": "shaft-input", "position": [9, 9, 9]}
+    )
+    client.post(f"/api/sessions/{sid}/attempt", json=_slot_pose("base-plate"))
+    client.post(
+        f"/api/sessions/{sid}/attempt",
+        json={"part_id": "gear-input-12t", "position": [0.0, 0.35, 0.0]},
+    )
+    client.post(f"/api/sessions/{sid}/reset-step")
+    for pid in ORDER:
+        client.post(f"/api/sessions/{sid}/attempt", json=_slot_pose(pid))
+
+    body = client.get(f"/api/sessions/{sid}/events").json()
+    kinds = [e["kind"] for e in body["events"]]
+    assert kinds[0] == "session_created"
+    assert "reset_step" in kinds
+    s = body["summary"]
+    assert s["too_far"] == 1
+    assert s["errors"] == 3  # MISSING_PARENT ×2 + ALREADY_PLACED(리셋은 2단계라 베이스는 남음)
+    assert s["by_error_type"] == {"MISSING_PARENT": 2, "ALREADY_PLACED": 1}
+    assert s["valid"] == 8
+    assert s["attempts"] == 11
+    assert s["completed_at"] is not None and s["duration_s"] is not None
+    assert s["auto_assembled"] is False
+    assert client.get("/api/sessions/nope/events").status_code == 404

@@ -1,18 +1,20 @@
 """세션 상태 저장소 (SQLite, stdlib)."""
 
+import json
 import sqlite3
 import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from app.assembly.schemas import AssemblyState
 
 T = TypeVar("T")
 
-_SCHEMA = """
+_SCHEMA = (
+    """
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     model_id TEXT NOT NULL,
@@ -20,7 +22,18 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 )
-"""
+""",
+    """
+CREATE TABLE IF NOT EXISTS events (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL REFERENCES sessions(id),
+    ts TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    payload_json TEXT NOT NULL
+)
+""",
+    "CREATE INDEX IF NOT EXISTS events_session ON events(session_id, seq)",
+)
 
 
 class SessionNotFound(KeyError):
@@ -35,7 +48,8 @@ class SessionStore:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
         with self._connect() as conn:
-            conn.execute(_SCHEMA)
+            for stmt in _SCHEMA:
+                conn.execute(stmt)
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -85,3 +99,18 @@ class SessionStore:
                 conn.execute("ROLLBACK")
                 raise
         return out
+
+    def log_event(self, session_id: str, kind: str, payload: dict[str, Any]) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO events (session_id, ts, kind, payload_json) VALUES (?, ?, ?, ?)",
+                (session_id, _now(), kind, json.dumps(payload, ensure_ascii=False)),
+            )
+
+    def events(self, session_id: str) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT seq, ts, kind, payload_json FROM events WHERE session_id = ? ORDER BY seq",
+                (session_id,),
+            ).fetchall()
+        return [{"seq": r[0], "ts": r[1], "kind": r[2], **json.loads(r[3])} for r in rows]
