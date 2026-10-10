@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
+import { PartListPanel } from "./features/assembly/PartListPanel";
+import { useDisassembleMode } from "./features/assembly/useDisassembleMode";
 import { CameraPanel } from "./features/camera/CameraPanel";
 import { useCamera } from "./features/camera/useCamera";
 import { commandBus } from "./features/commands/commandBus";
@@ -65,6 +67,8 @@ function ModePanel({ mode }: { mode: Mode }) {
       return <RecordPanel />;
     case "lab":
       return <SelectedPartCard />;
+    case "disassemble":
+      return <PartListPanel />;
     default:
       return (
         <>
@@ -80,6 +84,7 @@ export default function App() {
   const model = useLabStore((s) => s.model);
   const loadError = useLabStore((s) => s.loadError);
   const lastCommand = useLabStore((s) => s.lastCommand);
+  const offline = useLabStore((s) => s.offline);
   const camera = useCamera();
   const mode = useModeRoute();
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -87,11 +92,12 @@ export default function App() {
   useHandTracking(camera.videoRef, overlayRef, camera.status === "on");
   useGesturePipeline();
   useInputSources(canvas);
+  useDisassembleMode();
   useEffect(installDebugApi, []);
 
   useEffect(() => {
     getModel("gearbox")
-      .then((m) => useLabStore.getState().setModel(m))
+      .then(({ model: m, offline }) => useLabStore.getState().setModel(m, offline))
       .catch((e: Error) => useLabStore.getState().setLoadError(e.message));
   }, []);
 
@@ -116,6 +122,11 @@ export default function App() {
       <main className={styles.stage}>
         <GearboxScene onCanvas={setCanvas} />
         {loadError && <div className={styles.error}>모델을 불러오지 못했습니다: {loadError}</div>}
+        {offline && (
+          <div className={styles.error} data-testid="offline-banner">
+            백엔드 없이 보기 전용으로 실행 중입니다. 조립 판정·작동·AI 튜터는 백엔드를 켜야 동작합니다.
+          </div>
+        )}
         <CameraPanel
           videoRef={camera.videoRef}
           status={camera.status}

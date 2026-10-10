@@ -69,6 +69,10 @@ export const handSimulator = {
       cursor: s.cursor,
       lastCommand: s.lastCommand,
       gesture: t.gesture,
+      exploded: s.exploded,
+      focus: s.focusPartId,
+      mode: s.mode,
+      offline: s.offline,
     };
   },
   poses: Object.keys(POSES) as PoseName[],

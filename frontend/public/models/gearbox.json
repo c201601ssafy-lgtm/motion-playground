@@ -1,0 +1,462 @@
+{
+ "meta": {
+  "model_id": "gearbox",
+  "name": "3-기어 감속 기어박스",
+  "gear_module": 0.05,
+  "input_part_id": "gear-input-12t",
+  "output_part_id": "gear-output-36t"
+ },
+ "parts": [
+  {
+   "part_id": "base-plate",
+   "name": "베이스 플레이트",
+   "kind": "base",
+   "step": 1,
+   "mass": 1.2,
+   "rotation_axis": "y",
+   "description": "모든 축을 정해진 간격으로 붙잡아 주는 바닥판.",
+   "function": "축 사이 거리를 고정해 기어가 정확히 맞물리도록 한다. 축 간격이 틀어지면 기어가 헛돌거나 끼인다.",
+   "teeth": null,
+   "geometry": {
+    "type": "box",
+    "size": [
+     3.4,
+     0.1,
+     1.4
+    ]
+   },
+   "collider": {
+    "type": "box",
+    "size": [
+     3.4,
+     0.1,
+     1.4
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    -0.5,
+    0.0
+   ]
+  },
+  {
+   "part_id": "shaft-input",
+   "name": "입력축",
+   "kind": "shaft",
+   "step": 2,
+   "mass": 0.15,
+   "rotation_axis": "y",
+   "description": "사람이나 모터가 돌리는 힘이 처음 들어오는 축.",
+   "function": "입력 기어를 붙잡고 회전을 전달한다. 위로 길게 나와 있어 손잡이나 모터를 연결할 수 있다.",
+   "teeth": null,
+   "geometry": {
+    "type": "cylinder",
+    "radius": 0.05,
+    "length": 1.0
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.05,
+     1.0
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "shaft-idler",
+   "name": "아이들러축",
+   "kind": "shaft",
+   "step": 2,
+   "mass": 0.1,
+   "rotation_axis": "y",
+   "description": "가운데 아이들러 기어를 받치는 짧은 축.",
+   "function": "아이들러 기어가 제자리에서 자유롭게 돌 수 있게 지지한다. 외부와 연결되지 않는다.",
+   "teeth": null,
+   "geometry": {
+    "type": "cylinder",
+    "radius": 0.05,
+    "length": 0.6
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.05,
+     0.6
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "shaft-output",
+   "name": "출력축",
+   "kind": "shaft",
+   "step": 2,
+   "mass": 0.15,
+   "rotation_axis": "y",
+   "description": "감속된 회전이 밖으로 나가는 축.",
+   "function": "출력 기어의 느리고 강한 회전을 바퀴나 장치로 내보낸다.",
+   "teeth": null,
+   "geometry": {
+    "type": "cylinder",
+    "radius": 0.05,
+    "length": 1.0
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.05,
+     1.0
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "gear-input-12t",
+   "name": "입력 기어 (12T)",
+   "kind": "gear",
+   "step": 3,
+   "mass": 0.05,
+   "rotation_axis": "y",
+   "description": "입력축에 끼우는 가장 작은 기어. 이빨 12개.",
+   "function": "빠르게 돌며 회전을 다음 기어로 넘긴다. 작은 기어가 큰 기어를 돌리면 속도는 줄고 힘(토크)은 커진다.",
+   "teeth": 12,
+   "geometry": {
+    "type": "gear",
+    "module": 0.05,
+    "teeth": 12,
+    "thickness": 0.1,
+    "bore_radius": 0.05
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.33,
+     0.1
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "gear-idler-24t",
+   "name": "아이들러 기어 (24T)",
+   "kind": "gear",
+   "step": 3,
+   "mass": 0.12,
+   "rotation_axis": "y",
+   "description": "입력 기어와 출력 기어 사이에 있는 중간 기어. 이빨 24개.",
+   "function": "회전 방향을 한 번 더 뒤집어 출력 기어가 입력 기어와 같은 방향으로 돌게 한다. 전체 기어비에는 영향을 주지 않는다.",
+   "teeth": 24,
+   "geometry": {
+    "type": "gear",
+    "module": 0.05,
+    "teeth": 24,
+    "thickness": 0.1,
+    "bore_radius": 0.05
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.63,
+     0.1
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "gear-output-36t",
+   "name": "출력 기어 (36T)",
+   "kind": "gear",
+   "step": 3,
+   "mass": 0.25,
+   "rotation_axis": "y",
+   "description": "출력축에 끼우는 가장 큰 기어. 이빨 36개.",
+   "function": "입력 기어보다 3배 많은 이빨을 가져 1/3 속도로 돌고, 이론상 3배의 토크를 낸다(마찰 무시).",
+   "teeth": 36,
+   "geometry": {
+    "type": "gear",
+    "module": 0.05,
+    "teeth": 36,
+    "thickness": 0.1,
+    "bore_radius": 0.05
+   },
+   "collider": {
+    "type": "cylinder",
+    "size": [
+     0.93,
+     0.1
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "part_id": "top-cover",
+   "name": "상부 커버",
+   "kind": "cover",
+   "step": 4,
+   "mass": 0.6,
+   "rotation_axis": "y",
+   "description": "축 윗부분을 잡아 주고 기어를 덮는 판.",
+   "function": "축이 기울지 않게 위쪽을 고정하고, 회전하는 기어에 손이 닿지 않게 막는다.",
+   "teeth": null,
+   "geometry": {
+    "type": "box",
+    "size": [
+     3.4,
+     0.05,
+     1.4
+    ]
+   },
+   "collider": {
+    "type": "box",
+    "size": [
+     3.4,
+     0.05,
+     1.4
+    ]
+   },
+   "explode_offset": [
+    0.0,
+    1.6,
+    0.0
+   ]
+  }
+ ],
+ "slots": [
+  {
+   "slot_id": "slot-base",
+   "accepts_part_id": "base-plate",
+   "parent_part_id": null,
+   "position": [
+    1.2,
+    -0.05,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_and_yaw",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 180.0,
+   "snap_radius": 0.25,
+   "meshes_with": []
+  },
+  {
+   "slot_id": "slot-shaft-a",
+   "accepts_part_id": "shaft-input",
+   "parent_part_id": "base-plate",
+   "position": [
+    0.0,
+    0.5,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": []
+  },
+  {
+   "slot_id": "slot-shaft-b",
+   "accepts_part_id": "shaft-idler",
+   "parent_part_id": "base-plate",
+   "position": [
+    0.9,
+    0.3,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": []
+  },
+  {
+   "slot_id": "slot-shaft-c",
+   "accepts_part_id": "shaft-output",
+   "parent_part_id": "base-plate",
+   "position": [
+    2.4,
+    0.5,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": []
+  },
+  {
+   "slot_id": "slot-gear-a",
+   "accepts_part_id": "gear-input-12t",
+   "parent_part_id": "shaft-input",
+   "position": [
+    0.0,
+    0.35,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": [
+    "slot-gear-b"
+   ]
+  },
+  {
+   "slot_id": "slot-gear-b",
+   "accepts_part_id": "gear-idler-24t",
+   "parent_part_id": "shaft-idler",
+   "position": [
+    0.9,
+    0.35,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": [
+    "slot-gear-a",
+    "slot-gear-c"
+   ]
+  },
+  {
+   "slot_id": "slot-gear-c",
+   "accepts_part_id": "gear-output-36t",
+   "parent_part_id": "shaft-output",
+   "position": [
+    2.4,
+    0.35,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_only",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 360.0,
+   "snap_radius": 0.25,
+   "meshes_with": [
+    "slot-gear-b"
+   ]
+  },
+  {
+   "slot_id": "slot-cover",
+   "accepts_part_id": "top-cover",
+   "parent_part_id": "base-plate",
+   "position": [
+    1.2,
+    0.625,
+    0.0
+   ],
+   "axis": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "orientation_rule": "axis_and_yaw",
+   "yaw_deg": 0.0,
+   "yaw_symmetry_deg": 180.0,
+   "snap_radius": 0.25,
+   "meshes_with": []
+  }
+ ],
+ "steps": [
+  {
+   "step": 1,
+   "title": "베이스 플레이트 놓기",
+   "slots": [
+    "slot-base"
+   ],
+   "requires_steps": []
+  },
+  {
+   "step": 2,
+   "title": "축 3개 세우기",
+   "slots": [
+    "slot-shaft-a",
+    "slot-shaft-b",
+    "slot-shaft-c"
+   ],
+   "requires_steps": [
+    1
+   ]
+  },
+  {
+   "step": 3,
+   "title": "기어 3개 끼우기",
+   "slots": [
+    "slot-gear-a",
+    "slot-gear-b",
+    "slot-gear-c"
+   ],
+   "requires_steps": [
+    2
+   ]
+  },
+  {
+   "step": 4,
+   "title": "상부 커버 덮기",
+   "slots": [
+    "slot-cover"
+   ],
+   "requires_steps": [
+    3
+   ]
+  }
+ ]
+}

@@ -62,6 +62,7 @@ class Part(_Strict):
     teeth: int | None = None
     geometry: Geometry
     collider: Collider
+    explode_offset: Vec3 = (0.0, 0.0, 0.0)  # 분해도에서 슬롯 위치로부터의 이동량
 
 
 class Slot(_Strict):

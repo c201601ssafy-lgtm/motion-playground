@@ -20,6 +20,7 @@ export interface Part {
   teeth: number | null;
   geometry: Geometry;
   collider: { type: "box" | "cylinder"; size: number[] };
+  explode_offset: Vec3;
 }
 
 export interface Slot {

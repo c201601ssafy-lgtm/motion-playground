@@ -22,6 +22,17 @@ export interface LabState {
   setMode: (mode: Mode) => void;
   model: MechanismModel | null;
   loadError: string | null;
+  /** 백엔드 없이 정적 모델만 불러온 상태 (조립 판정 불가) */
+  offline: boolean;
+  /** 분해도 표시 여부 (애니메이션 목표값) */
+  exploded: boolean;
+  /** 포커스된 부품 외에는 흐리게 */
+  focusPartId: string | null;
+  setExploded: (v: boolean) => void;
+  /** 작동 모드 기어 각속도 (rad/s, 회전축 y 기준) */
+  spins: Record<string, number>;
+  setSpins: (spins: Record<string, number>) => void;
+  setFocus: (id: string | null) => void;
   yaw: number;
   pitch: number;
   hoveredPartId: string | null;
@@ -35,7 +46,7 @@ export interface LabState {
   lastCommand: string | null;
   /** 부품을 놓았을 때 호출 (조립 판정 등). 없으면 놓은 자리에 그대로 둔다. */
   onDrop: ((e: DropEvent) => void) | null;
-  setModel: (model: MechanismModel) => void;
+  setModel: (model: MechanismModel, offline?: boolean) => void;
   setLoadError: (error: string) => void;
   rotate: (dYaw: number, dPitch: number) => void;
   setHovered: (id: string | null) => void;
@@ -55,6 +66,13 @@ export const useLabStore = create<LabState>((set) => ({
   setMode: (mode) => set({ mode }),
   model: null,
   loadError: null,
+  offline: false,
+  exploded: false,
+  focusPartId: null,
+  setExploded: (exploded) => set({ exploded }),
+  spins: {},
+  setSpins: (spins) => set({ spins }),
+  setFocus: (focusPartId) => set({ focusPartId }),
   yaw: -0.4,
   pitch: 0.35,
   hoveredPartId: null,
@@ -65,7 +83,7 @@ export const useLabStore = create<LabState>((set) => ({
   cursor: null,
   lastCommand: null,
   onDrop: null,
-  setModel: (model) => set({ model, loadError: null }),
+  setModel: (model, offline = false) => set({ model, offline, loadError: null }),
   setLoadError: (loadError) => set({ loadError }),
   rotate: (dYaw, dPitch) =>
     set((s) => ({

@@ -1,11 +1,11 @@
 import { Grid } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { commandBus } from "../features/commands/commandBus";
 import type { ScreenPoint } from "../features/commands/types";
 import { type PartPose, useLabStore } from "../store/labStore";
-import type { Vec3 } from "../types/model";
+import type { Part, Slot, Vec3 } from "../types/model";
 import { PartVisual } from "./PartVisual";
 
 const COVER_IDS = new Set(["top-cover"]);
@@ -24,6 +24,66 @@ function findPartRoot(obj: THREE.Object3D | null): THREE.Object3D | null {
   return o;
 }
 
+const EXPLODE_SPEED = 4; // 1/s
+
+interface PartNodeProps {
+  part: Part;
+  slot: Slot;
+  pose: PartPose | undefined;
+  exploded: boolean;
+  highlighted: boolean;
+  selected: boolean;
+  dimmed: boolean;
+  /** 회전축(y) 기준 각속도 rad/s (작동 모드) */
+  spin?: number;
+}
+
+/** 부품 하나. 자세가 지정되지 않으면 슬롯 위치 + 분해 오프셋(애니메이션)에 놓인다. */
+function PartNode({ part, slot, pose, exploded, highlighted, selected, dimmed, spin = 0 }: PartNodeProps) {
+  const root = useRef<THREE.Group>(null);
+  const spinner = useRef<THREE.Group>(null);
+  const t = useRef(exploded ? 1 : 0);
+
+  useFrame((_, dt) => {
+    const g = root.current;
+    if (!g) return;
+    const target = exploded ? 1 : 0;
+    t.current += Math.sign(target - t.current) * Math.min(Math.abs(target - t.current), dt * EXPLODE_SPEED);
+    const e = t.current * t.current * (3 - 2 * t.current); // smoothstep
+    if (pose) {
+      g.position.set(...pose.position);
+      g.rotation.y = THREE.MathUtils.degToRad(pose.yaw);
+    } else {
+      const [ox, oy, oz] = part.explode_offset ?? [0, 0, 0];
+      g.position.set(slot.position[0] + ox * e, slot.position[1] + oy * e, slot.position[2] + oz * e);
+      g.rotation.y = THREE.MathUtils.degToRad(slot.yaw_deg);
+    }
+    if (spinner.current) spinner.current.rotation.y += spin * dt;
+  });
+
+  return (
+    <group ref={root} userData={{ partRoot: true, partId: part.part_id }}>
+      <group ref={spinner}>
+        <PartVisual part={part} highlighted={highlighted} selected={selected} opacity={dimmed ? 0.18 : 1} />
+      </group>
+    </group>
+  );
+}
+
+/** 분해도에서는 위로 펼쳐진 부품이 화면에 들어오도록 축소하고 내린다. */
+function ExplodeFraming({ exploded, children }: { exploded: boolean; children: React.ReactNode }) {
+  const g = useRef<THREE.Group>(null);
+  const t = useRef(exploded ? 1 : 0);
+  useFrame((_, dt) => {
+    const target = exploded ? 1 : 0;
+    t.current += Math.sign(target - t.current) * Math.min(Math.abs(target - t.current), dt * EXPLODE_SPEED);
+    if (!g.current) return;
+    g.current.scale.setScalar(1 - 0.28 * t.current);
+    g.current.position.y = -0.55 * t.current;
+  });
+  return <group ref={g}>{children}</group>;
+}
+
 function SceneContent() {
   const modelGroup = useRef<THREE.Group>(null);
   const { camera } = useThree();
@@ -36,6 +96,9 @@ function SceneContent() {
   const dragging = useLabStore((s) => s.draggingPartId);
   const poses = useLabStore((s) => s.poses);
   const hidden = useLabStore((s) => s.hiddenParts);
+  const exploded = useLabStore((s) => s.exploded);
+  const focus = useLabStore((s) => s.focusPartId);
+  const spins = useLabStore((s) => s.spins);
 
   useEffect(() => {
     const ray = raycaster.current;
@@ -65,7 +128,9 @@ function SceneContent() {
 
     const currentPose = (partId: string, root: THREE.Object3D): PartPose => {
       const s = useLabStore.getState();
-      return s.poses[partId] ?? { position: root.position.toArray() as Vec3, yaw: THREE.MathUtils.radToDeg(root.rotation.y) };
+      return (
+        s.poses[partId] ?? { position: root.position.toArray() as Vec3, yaw: THREE.MathUtils.radToDeg(root.rotation.y) }
+      );
     };
 
     return commandBus.subscribe(({ command }) => {
@@ -98,7 +163,10 @@ function SceneContent() {
 
         case "MOVE_PART": {
           if (drag.orbitLast) {
-            store.rotate((command.screen.x - drag.orbitLast.x) * Math.PI, (command.screen.y - drag.orbitLast.y) * Math.PI);
+            store.rotate(
+              (command.screen.x - drag.orbitLast.x) * Math.PI,
+              (command.screen.y - drag.orbitLast.y) * Math.PI,
+            );
             drag.orbitLast = command.screen;
             break;
           }
@@ -144,29 +212,29 @@ function SceneContent() {
 
   if (!model) return null;
   return (
-    <group rotation={[pitch, yaw, 0]}>
-      <group ref={modelGroup} position={[-MODEL_CENTER[0], -MODEL_CENTER[1], -MODEL_CENTER[2]]}>
-        {model.slots.map((slot) => {
-          const part = model.parts.find((p) => p.part_id === slot.accepts_part_id);
-          if (!part || hidden.includes(part.part_id)) return null;
-          const pose = poses[part.part_id];
-          return (
-            <group
-              key={slot.slot_id}
-              userData={{ partRoot: true, partId: part.part_id }}
-              position={pose?.position ?? slot.position}
-              rotation={[0, THREE.MathUtils.degToRad(pose?.yaw ?? slot.yaw_deg), 0]}
-            >
-              <PartVisual
+    <ExplodeFraming exploded={exploded}>
+      <group rotation={[pitch, yaw, 0]}>
+        <group ref={modelGroup} position={[-MODEL_CENTER[0], -MODEL_CENTER[1], -MODEL_CENTER[2]]}>
+          {model.slots.map((slot) => {
+            const part = model.parts.find((p) => p.part_id === slot.accepts_part_id);
+            if (!part || hidden.includes(part.part_id)) return null;
+            return (
+              <PartNode
+                key={slot.slot_id}
                 part={part}
+                slot={slot}
+                pose={poses[part.part_id]}
+                exploded={exploded}
                 highlighted={hovered === part.part_id}
                 selected={selected === part.part_id || dragging === part.part_id}
+                dimmed={!!focus && focus !== part.part_id}
+                spin={spins[part.part_id]}
               />
-            </group>
-          );
-        })}
+            );
+          })}
+        </group>
       </group>
-    </group>
+    </ExplodeFraming>
   );
 }
 
