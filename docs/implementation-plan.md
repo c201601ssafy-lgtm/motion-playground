@@ -121,7 +121,7 @@ holoforge-ai-lab/
 | P1-3 | Assembly Engine | engine.py, assembly-cases.jsonl | 오류 8종 + 전체 조립 + 기구 상태(출력 rpm = 입력/3) pytest 통과 | 완료 | pytest 37 passed (케이스 16개, 오류 8종 전부, 출력 rpm 10 @ 입력 30) |
 | P1-4 | 세션 API + SQLite | api/, db.py | TestClient로 세션 생성 → 전체 조립 → mechanism 응답 확인 | 완료 | pytest 42 passed, 실서버 curl로 8부품 조립 → 입력 30rpm 시 출력 10rpm 확인 |
 | P1-5 | 3D 씬 + Command 계층 | three/parts/, features/commands/ | 브라우저에서 8부품 표시, 마우스 드래그 회전, Vitest(CommandBus) 통과 | 완료 | Chrome headless: 8부품 렌더, 오른쪽 드래그 회전, 클릭 선택(커버 뒤 기어 우선), 콘솔 에러 0, vitest 6 passed |
-| P1-6 | CI + 기본 문서 | ci.yml, architecture.md, licenses.md, simulation-limitations.md | 로컬에서 ruff·pytest·tsc·vitest·build 전부 통과 | 진행중 | |
+| P1-6 | CI + 기본 문서 | ci.yml, architecture.md, licenses.md, simulation-limitations.md | 로컬에서 ruff·pytest·tsc·vitest·build 전부 통과 | 완료 | 로컬 CI 단계 전부 통과 + GitHub Actions success |
 
 ### Phase 2 — 손 추적 + 제스처 + 안정화 + 녹화
 
