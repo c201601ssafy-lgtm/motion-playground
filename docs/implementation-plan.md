@@ -130,7 +130,7 @@ holoforge-ai-lab/
 | ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
 |---|---|---|---|---|---|
 | P2-1 | 카메라 | features/camera/ | 권한 허용 시 미리보기, 거부 시 에러 UI | 완료 | Chrome 가짜 카메라: 허용 시 640px 미리보기(거울), 거부 시 권한 안내, vitest 15 passed |
-| P2-2 | HandTracker | features/hand-tracking/ | 손 올리면 랜드마크 오버레이 + fps ≥ 24 표시 | 진행중 | |
+| P2-2 | HandTracker | features/hand-tracking/ | 손 올리면 랜드마크 오버레이 + fps ≥ 24 표시 | 완료 | MediaPipe 샘플 손 사진(y4m 가짜 카메라)으로 손 감지 95%·오버레이 정확, GPU headless 추적 32fps, vitest 21 passed |
 | P2-3 | 분류기 + 상태 머신 + 필터 | features/gestures/, gesture-cases.jsonl, Python 포팅 | Vitest·pytest 동일 케이스 통과, HUD에 제스처 표시 | 대기 | |
 | P2-4 | GestureCommandSource + 3D 연결 | 드래그 평면, 손 커서 | 집기로 부품 이동, 펼친 손 회전, 주먹 취소 수동 확인 | 대기 | |
 | P2-5 | 녹화 화면 + 지연 계측 | /record, metrics/ | 2초 녹화 → JSONL 다운로드, HUD p50/p95 표시 | 대기 | |
