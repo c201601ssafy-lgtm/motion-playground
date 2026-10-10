@@ -4,6 +4,8 @@ model:
   model_id: gearbox
   name: 3-기어 감속 기어박스
   gear_module: 0.05
+  input_part_id: gear-input-12t
+  output_part_id: gear-output-36t
 
 parts:
   - part_id: base-plate

@@ -59,6 +59,11 @@ def validate_model(model: MechanismModel) -> list[str]:
         for dup in _duplicates(ids):
             errors.append(f"중복 {kind}: {dup}")
 
+    for field in ("input_part_id", "output_part_id"):
+        pid = getattr(model.meta, field)
+        if (p := model.part(pid)) is None or p.kind != "gear":
+            errors.append(f"meta.{field} {pid}가 기어 부품이 아님")
+
     # 부품 ↔ 슬롯: 부품마다 정확히 하나의 슬롯
     for p in model.parts:
         n = sum(1 for s in model.slots if s.accepts_part_id == p.part_id)

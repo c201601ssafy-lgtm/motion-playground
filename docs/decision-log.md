@@ -166,3 +166,11 @@ class LLMAdapter(Protocol):
 4. **브라우저 성능** – MediaPipe + 3D 동시 구동. 대응: 해상도 640×480, 그림자 최소, 필요 시 Worker.
 5. **에셋 제작 시간** – 대응: 절차적 지오메트리(D-001).
 6. **라이선스** – Blender 산출물은 GPL 아님(도구만 GPL), CalculiX/OpenFOAM은 별도 프로세스 호출로 분리. `licenses.md`에 기록.
+
+## D-013 슬롯 선택 규칙 보완 (D-006 보완, 2026-10-11)
+
+- 문제: 축 슬롯과 기어 슬롯 중심이 0.05~0.15 거리라 "가장 가까운 슬롯"만 보면 정답 위치 근처에 놓아도 WRONG_SLOT이 나옴.
+- 결정: 반경 안에 **그 부품의 정답 슬롯이 있으면 우선 판정**. 없으면 반경 안 가장 가까운 슬롯으로 WRONG_SLOT/SLOT_OCCUPIED 판정.
+- SLOT_OCCUPIED는 "가장 가까운 슬롯이 다른 부품 자리이고 이미 차 있음"일 때. 비어 있으면 WRONG_SLOT.
+- TOO_FAR는 조립 시도가 아니므로 `last_error`에 기록하지 않음.
+- 기구 계산용으로 `meta.input_part_id`, `meta.output_part_id` 추가. 커버 없이도 작동 가능(operable) 판정.

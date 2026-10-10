@@ -90,6 +90,8 @@ class ModelMeta(_Strict):
     model_id: str
     name: str
     gear_module: float = Field(gt=0)
+    input_part_id: str
+    output_part_id: str
 
 
 class MechanismModel(_Strict):

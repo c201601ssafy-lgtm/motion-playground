@@ -1,0 +1,16 @@
+{"id": "valid-base", "setup": [], "attempt": {"part_id": "base-plate", "position": [1.2, -0.05, 0.0]}, "expect": {"is_valid": true}}
+{"id": "valid-base-yaw-180", "setup": [], "attempt": {"part_id": "base-plate", "position": [1.25, -0.05, 0.05], "yaw_deg": 180}, "expect": {"is_valid": true}}
+{"id": "valid-gear-offset", "setup": ["base-plate", "shaft-input", "shaft-idler", "shaft-output"], "attempt": {"part_id": "gear-input-12t", "position": [0.1, 0.4, 0.05]}, "expect": {"is_valid": true}}
+{"id": "valid-shaft-tilt-10", "setup": ["base-plate"], "attempt": {"part_id": "shaft-input", "position": [0.0, 0.5, 0.0], "axis": [0.1736, 0.9848, 0.0]}, "expect": {"is_valid": true}}
+{"id": "unknown-part", "setup": [], "attempt": {"part_id": "gear-ghost", "position": [0.0, 0.0, 0.0]}, "expect": {"is_valid": false, "error_type": "UNKNOWN_PART"}}
+{"id": "already-placed", "setup": ["base-plate"], "attempt": {"part_id": "base-plate", "position": [1.2, -0.05, 0.0]}, "expect": {"is_valid": false, "error_type": "ALREADY_PLACED"}}
+{"id": "too-far", "setup": [], "attempt": {"part_id": "shaft-input", "position": [5.0, 5.0, 5.0]}, "expect": {"is_valid": false, "error_type": "TOO_FAR"}}
+{"id": "wrong-slot-big-gear-on-input", "setup": ["base-plate", "shaft-input", "shaft-idler", "shaft-output"], "attempt": {"part_id": "gear-output-36t", "position": [0.0, 0.35, 0.0]}, "expect": {"is_valid": false, "error_type": "WRONG_SLOT", "target_slot": "slot-gear-a"}}
+{"id": "slot-occupied", "setup": ["base-plate", "shaft-input", "shaft-idler", "shaft-output", "gear-input-12t"], "attempt": {"part_id": "gear-output-36t", "position": [0.0, 0.35, 0.0]}, "expect": {"is_valid": false, "error_type": "SLOT_OCCUPIED", "target_slot": "slot-gear-a"}}
+{"id": "missing-parent-shaft", "setup": ["base-plate"], "attempt": {"part_id": "gear-input-12t", "position": [0.0, 0.35, 0.0]}, "expect": {"is_valid": false, "error_type": "MISSING_PARENT"}}
+{"id": "missing-parent-base", "setup": [], "attempt": {"part_id": "shaft-idler", "position": [0.9, 0.3, 0.0]}, "expect": {"is_valid": false, "error_type": "MISSING_PARENT"}}
+{"id": "wrong-order-gear-before-all-shafts", "setup": ["base-plate", "shaft-input"], "attempt": {"part_id": "gear-input-12t", "position": [0.0, 0.35, 0.0]}, "expect": {"is_valid": false, "error_type": "WRONG_ORDER"}}
+{"id": "wrong-order-cover-before-gears", "setup": ["base-plate", "shaft-input", "shaft-idler", "shaft-output"], "attempt": {"part_id": "top-cover", "position": [1.2, 0.625, 0.0]}, "expect": {"is_valid": false, "error_type": "WRONG_ORDER"}}
+{"id": "wrong-orientation-shaft-tilted", "setup": ["base-plate"], "attempt": {"part_id": "shaft-input", "position": [0.0, 0.5, 0.0], "axis": [1, 0, 0]}, "expect": {"is_valid": false, "error_type": "WRONG_ORIENTATION"}}
+{"id": "wrong-orientation-base-yaw-90", "setup": [], "attempt": {"part_id": "base-plate", "position": [1.2, -0.05, 0.0], "yaw_deg": 90}, "expect": {"is_valid": false, "error_type": "WRONG_ORIENTATION"}}
+{"id": "wrong-orientation-cover-yaw-45", "setup": ["base-plate", "shaft-input", "shaft-idler", "shaft-output", "gear-input-12t", "gear-idler-24t", "gear-output-36t"], "attempt": {"part_id": "top-cover", "position": [1.2, 0.625, 0.0], "yaw_deg": 45}, "expect": {"is_valid": false, "error_type": "WRONG_ORIENTATION"}}
