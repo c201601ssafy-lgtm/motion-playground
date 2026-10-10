@@ -116,7 +116,7 @@ holoforge-ai-lab/
 
 | ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
 |---|---|---|---|---|---|
-| P1-1 | 모노레포 뼈대 | frontend/, backend/, README, LICENSE, .gitignore, .env.example | `npm run build` 성공, `uvicorn` 기동 후 `GET /api/health` = 200 | 진행중 | |
+| P1-1 | 모노레포 뼈대 | frontend/, backend/, README, LICENSE, .gitignore, .env.example | `npm run build` 성공, `uvicorn` 기동 후 `GET /api/health` = 200 | 완료 | health 200, pytest 1 passed, vite build OK |
 | P1-2 | 부품 YAML + 로더 | models/gearbox/*.yaml, model_loader.py | 로더 테스트 통과, 참조 무결성·기어 중심 거리 검사 통과 | 대기 | |
 | P1-3 | Assembly Engine | engine.py, assembly-cases.jsonl | 오류 8종 + 전체 조립 + 기구 상태(출력 rpm = 입력/3) pytest 통과 | 대기 | |
 | P1-4 | 세션 API + SQLite | api/, db.py | TestClient로 세션 생성 → 전체 조립 → mechanism 응답 확인 | 대기 | |
