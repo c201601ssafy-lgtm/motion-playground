@@ -22,8 +22,14 @@ jobs:
         run: |
           uv run ruff check .
           uv run ruff format --check .
-      - name: Pytest (모델 YAML 스키마·참조·조립 순서 검사 포함)
+      - name: Pytest (모델 YAML·제스처/도구 스키마·조립 엔진·튜터 mock 포함)
         run: uv run pytest -q
+      - name: Eval — 도구 호출 (mock, 선택률 90% 미만이면 실패)
+        run: uv run python scripts/eval_tool_calls.py --provider mock --min-selection 0.9
+        env:
+          LLM_PROVIDER: mock
+      - name: Eval — 제스처 (합성 녹화 스모크)
+        run: uv run python scripts/eval_gestures.py
 
   frontend:
     runs-on: ubuntu-latest

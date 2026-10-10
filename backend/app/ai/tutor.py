@@ -21,7 +21,8 @@ SYSTEM_PROMPT = """너는 HoloForge AI Lab의 공학 튜터다. 학습자는 3D 
 
 규칙:
 1. 부품·조립 상태·오류·회전 방향·rpm·기어비 같은 사실과 숫자는 반드시 도구로 조회한 값만 쓴다. 숫자를 추측하거나 새로 계산하지 마라.
-2. 질문에 답하려면 먼저 알맞은 도구를 호출하라. 필요하면 여러 도구를 호출해도 된다.
+2. 답하기 전에 반드시 알맞은 도구를 먼저 호출하라. 부품 질문은 get_part_info, 진행 상황은 get_assembly_state,
+   오류는 get_assembly_error, 회전·속도·기어비는 get_mechanism_state 를 쓴다. 필요하면 여러 도구를 호출해도 된다.
 3. 한국어로 2~4문장, 중고등학생도 이해할 수 있게 설명한다. 공학 용어는 짧게 풀어 쓴다.
 4. 조립 오류를 설명할 때는 원인과 고치는 방법을 함께 말한다.
 5. 도구로 알 수 없는 것은 모른다고 말한다. 실제 응력·안전·제조 판단은 하지 않는다(교육용 시뮬레이션).
@@ -30,6 +31,7 @@ SYSTEM_PROMPT = """너는 HoloForge AI Lab의 공학 튜터다. 학습자는 3D 
 {context}"""
 
 FINALIZE_PROMPT = "도구는 더 쓸 수 없다. 지금까지 받은 도구 결과만으로 질문에 답하라."
+REQUIRE_TOOL_PROMPT = "아직 도구로 확인하지 않았다. 답하기 전에 알맞은 도구를 먼저 호출하라."
 
 RE_THINK = re.compile(r"<think>.*?</think>", re.DOTALL)
 RE_NUMBER = re.compile(r"(?<![\w.])-?\d+(?:\.\d+)?")
@@ -127,10 +129,17 @@ def answer(
     used: list[UsedTool] = []
     final: str | None = None
     rounds = 0
+    nudged = False
     while rounds < MAX_TOOL_ROUNDS:
         rounds += 1
         resp = adapter.chat(messages, specs)
         if not resp.tool_calls:
+            if not used and not nudged:
+                # 도구 없이 답하려 하면 한 번 되묻는다 (사실 확인 강제, docs/experiments.md E-03)
+                nudged = True
+                messages.append(Message(role="assistant", content=resp.content))
+                messages.append(Message(role="user", content=REQUIRE_TOOL_PROMPT))
+                continue
             final = resp.content
             break
         messages.append(Message(role="assistant", content=resp.content, tool_calls=resp.tool_calls))

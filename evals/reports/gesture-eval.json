@@ -1,0 +1,90 @@
+{
+  "clips": 36,
+  "frames": 1080,
+  "frames_without_hand": 24,
+  "frame_accuracy": 1.0,
+  "macro_f1": 1.0,
+  "per_label": {
+    "OPEN_PALM": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 264
+    },
+    "PINCH": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 264
+    },
+    "FIST": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 264
+    },
+    "NONE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 264
+    }
+  },
+  "confusion": {
+    "OPEN_PALM": {
+      "OPEN_PALM": 264,
+      "PINCH": 0,
+      "FIST": 0,
+      "NONE": 0
+    },
+    "PINCH": {
+      "OPEN_PALM": 0,
+      "PINCH": 264,
+      "FIST": 0,
+      "NONE": 0
+    },
+    "FIST": {
+      "OPEN_PALM": 0,
+      "PINCH": 0,
+      "FIST": 264,
+      "NONE": 0
+    },
+    "NONE": {
+      "OPEN_PALM": 0,
+      "PINCH": 0,
+      "FIST": 0,
+      "NONE": 264
+    }
+  },
+  "clip_accuracy": 1.0,
+  "by_subject": {
+    "syn01": 1.0,
+    "syn02": 1.0,
+    "syn03": 1.0
+  },
+  "by_lighting": {
+    "bright": 1.0,
+    "dim": 1.0,
+    "normal": 1.0
+  },
+  "decision_latency_ms": {
+    "p50": 66.0,
+    "p95": 66.0,
+    "n": 27
+  },
+  "stability": {
+    "none": {
+      "jitter_mean": 0.022302,
+      "false_starts_per_clip": 0.0
+    },
+    "ema": {
+      "jitter_mean": 0.019581,
+      "false_starts_per_clip": 0.0
+    },
+    "one-euro": {
+      "jitter_mean": 0.019025,
+      "false_starts_per_clip": 0.0
+    }
+  },
+  "source": "synthetic"
+}

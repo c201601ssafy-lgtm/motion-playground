@@ -15,8 +15,6 @@ __pycache__/
 *.sqlite3
 *.db
 datasets/gestures/raw/
-evals/reports/*
-!evals/reports/.gitkeep
 
 # Env / IDE
 .env

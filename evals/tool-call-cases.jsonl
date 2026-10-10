@@ -1,0 +1,16 @@
+{"id": "part-small-gear", "scenario": "complete", "question": "이 작은 기어는 어떤 역할을 해?", "expected_tools": ["get_part_info"], "expected_args": {"get_part_info": {"part_id": "gear-input-12t"}}, "expected_facts": ["12"]}
+{"id": "part-idler", "scenario": "complete", "question": "아이들러 기어는 왜 필요해?", "expected_tools": ["get_part_info"], "expected_args": {"get_part_info": {"part_id": "gear-idler-24t"}}, "expected_facts": ["방향"]}
+{"id": "part-output-shaft", "scenario": "empty", "question": "출력축은 무슨 일을 해?", "expected_tools": ["get_part_info"], "expected_args": {"get_part_info": {"part_id": "shaft-output"}}, "expected_facts": []}
+{"id": "part-selected", "scenario": "complete", "selected_part": "top-cover", "question": "이건 뭐야?", "expected_tools": ["get_part_info"], "expected_args": {"get_part_info": {"part_id": "top-cover"}}, "expected_facts": []}
+{"id": "dir-opposite", "scenario": "complete", "question": "왜 이쪽으로 돌면 반대쪽 기어가 반대로 돌아?", "expected_tools": ["get_mechanism_state"], "expected_args": {}, "expected_facts": ["반대"]}
+{"id": "ratio-up", "scenario": "complete", "question": "기어비를 높이면 어떻게 돼?", "expected_tools": ["get_mechanism_state"], "expected_args": {}, "expected_facts": ["3"]}
+{"id": "output-speed-60", "scenario": "complete", "question": "입력을 60rpm으로 돌리면 출력 기어는 몇 rpm이야?", "expected_tools": ["get_mechanism_state"], "expected_args": {"get_mechanism_state": {"input_rpm": 60}}, "expected_facts": ["20"]}
+{"id": "why-not-working-incomplete", "scenario": "base_only", "question": "왜 지금 작동하지 않아?", "expected_tools_any": ["get_mechanism_state", "get_assembly_state", "get_assembly_error"], "expected_tools": [], "expected_args": {}, "expected_facts": []}
+{"id": "wrong-orientation", "scenario": "wrong_orientation", "question": "내가 어떤 부품을 잘못 끼웠어?", "expected_tools": ["get_assembly_error"], "expected_args": {}, "expected_facts": ["베이스 플레이트", "90"]}
+{"id": "wrong-orientation-fix", "scenario": "wrong_orientation", "question": "어떻게 고치면 돼?", "expected_tools": ["get_assembly_error"], "expected_args": {}, "expected_facts": ["0"]}
+{"id": "missing-parent", "scenario": "missing_parent", "question": "기어가 왜 안 들어가?", "expected_tools": ["get_assembly_error"], "expected_args": {}, "expected_facts": ["입력축"]}
+{"id": "progress", "scenario": "base_only", "question": "지금 몇 단계야?", "expected_tools": ["get_assembly_state"], "expected_args": {}, "expected_facts": ["2"]}
+{"id": "progress-complete", "scenario": "complete", "question": "조립 다 끝났어?", "expected_tools": ["get_assembly_state"], "expected_args": {}, "expected_facts": ["8"]}
+{"id": "simulate", "scenario": "complete", "question": "45rpm으로 돌려 봐", "expected_tools": ["run_visual_simulation"], "expected_args": {"run_visual_simulation": {"input_rpm": 45}}, "expected_facts": []}
+{"id": "simulate-incomplete", "scenario": "base_only", "question": "작동시켜 줘", "expected_tools_any": ["run_visual_simulation", "get_mechanism_state"], "expected_tools": [], "expected_args": {}, "expected_facts": []}
+{"id": "reset", "scenario": "two_shafts", "question": "이번 단계 다시 할래, 되돌려 줘", "expected_tools": ["reset_assembly_step"], "expected_args": {}, "expected_facts": []}

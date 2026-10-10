@@ -139,3 +139,31 @@ def test_grounding_accepts_values_from_results_and_question() -> None:
     cited, bad = grounding("30rpm 입력에 15rpm, 36개, 2.5배, 7단계", used, "7단계는?")
     assert cited == [7.0, 15.0, 30.0, 36.0]
     assert bad == [2.5]
+
+
+class _LazyThenToolLLM:
+    """처음엔 도구 없이 답하려다, 되묻으면 도구를 쓰는 LLM."""
+
+    name = "lazy"
+
+    def __init__(self) -> None:
+        self.seen_nudge = False
+
+    def chat(self, messages: list[Message], tools: list[ToolSpec]) -> LLMResponse:
+        last = messages[-1]
+        if last.role == "user" and "도구를 먼저" in last.content:
+            self.seen_nudge = True
+            return LLMResponse(tool_calls=[ToolCall(name="get_assembly_state")], model="lazy")
+        if last.role == "tool":
+            return LLMResponse(content="지금은 1단계입니다.", model="lazy")
+        return LLMResponse(content="아마 3단계일 거예요.", model="lazy")
+
+
+def test_nudges_once_when_model_skips_tools(store: SessionStore) -> None:
+    ctx = ToolContext(session_id=store.create("gearbox"), store=store)
+    llm = _LazyThenToolLLM()
+    r = answer(TutorRequest(question="지금 몇 단계야?"), ctx, llm)
+    assert llm.seen_nudge
+    assert [u.name for u in r.used_tools] == ["get_assembly_state"]
+    assert r.answer == "지금은 1단계입니다."
+    assert r.warnings == []
