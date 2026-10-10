@@ -1,3 +1,5 @@
+import type { MechanismModel } from "../types/model";
+
 export interface Health {
   status: string;
 }
@@ -9,3 +11,5 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export const getHealth = () => getJson<Health>("/health");
+export const getModel = (modelId: string) =>
+  getJson<MechanismModel>(`/models/${encodeURIComponent(modelId)}`);
