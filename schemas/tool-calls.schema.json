@@ -1,0 +1,536 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jngbnss/holoforge-ai-lab/schemas/tool-calls.schema.json",
+  "title": "HoloForge AI tutor tools",
+  "description": "AI 튜터가 호출할 수 있는 도구의 입력·출력 스키마 (D-007). backend/app/tools/registry.py 에서 생성.",
+  "tools": {
+    "get_part_info": {
+      "description": "부품의 이름, 기능, 이빨 수, 받침 부품, 맞물리는 기어를 조회한다.",
+      "mutates": false,
+      "input": {
+        "additionalProperties": false,
+        "properties": {
+          "part_id": {
+            "description": "부품 ID",
+            "title": "Part Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "part_id"
+        ],
+        "title": "PartIdIn",
+        "type": "object"
+      },
+      "output": {
+        "properties": {
+          "part_id": {
+            "title": "Part Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          },
+          "teeth": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Teeth"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "function": {
+            "title": "Function",
+            "type": "string"
+          },
+          "sits_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "이 부품을 받치는 부품 이름",
+            "title": "Sits On"
+          },
+          "meshes_with": {
+            "description": "맞물리는 기어 이름",
+            "items": {
+              "type": "string"
+            },
+            "title": "Meshes With",
+            "type": "array"
+          },
+          "is_placed": {
+            "title": "Is Placed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "part_id",
+          "name",
+          "kind",
+          "step",
+          "teeth",
+          "description",
+          "function",
+          "sits_on",
+          "meshes_with",
+          "is_placed"
+        ],
+        "title": "PartInfoOut",
+        "type": "object"
+      }
+    },
+    "get_assembly_state": {
+      "description": "현재 조립 진행 상황(완료 단계, 현재 단계, 조립된 부품)을 조회한다.",
+      "mutates": false,
+      "input": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "NoArgs",
+        "type": "object"
+      },
+      "output": {
+        "properties": {
+          "completed_steps": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Completed Steps",
+            "type": "array"
+          },
+          "current_step": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Step"
+          },
+          "current_step_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Step Title"
+          },
+          "parts_placed": {
+            "title": "Parts Placed",
+            "type": "integer"
+          },
+          "parts_total": {
+            "title": "Parts Total",
+            "type": "integer"
+          },
+          "is_complete": {
+            "title": "Is Complete",
+            "type": "boolean"
+          },
+          "placed_parts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Placed Parts",
+            "type": "array"
+          },
+          "remaining_parts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Remaining Parts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "completed_steps",
+          "current_step",
+          "current_step_title",
+          "parts_placed",
+          "parts_total",
+          "is_complete",
+          "placed_parts",
+          "remaining_parts"
+        ],
+        "title": "AssemblyStateOut",
+        "type": "object"
+      }
+    },
+    "get_assembly_error": {
+      "description": "규칙 엔진이 판정한 마지막 조립 오류와 수정 힌트를 조회한다.",
+      "mutates": false,
+      "input": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "NoArgs",
+        "type": "object"
+      },
+      "output": {
+        "$defs": {
+          "ErrorType": {
+            "enum": [
+              "UNKNOWN_PART",
+              "ALREADY_PLACED",
+              "TOO_FAR",
+              "WRONG_SLOT",
+              "SLOT_OCCUPIED",
+              "MISSING_PARENT",
+              "WRONG_ORDER",
+              "WRONG_ORIENTATION"
+            ],
+            "title": "ErrorType",
+            "type": "string"
+          }
+        },
+        "properties": {
+          "has_error": {
+            "title": "Has Error",
+            "type": "boolean"
+          },
+          "error_type": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ErrorType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "part_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Part Id"
+          },
+          "part_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Part Name"
+          },
+          "target_slot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Slot"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Message"
+          },
+          "expected_rotation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Rotation"
+          },
+          "current_rotation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Current Rotation"
+          },
+          "axis_angle_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Axis Angle Deg"
+          },
+          "missing_parts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Parts",
+            "type": "array"
+          },
+          "hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hint"
+          }
+        },
+        "required": [
+          "has_error"
+        ],
+        "title": "AssemblyErrorOut",
+        "type": "object"
+      }
+    },
+    "get_mechanism_state": {
+      "description": "조립된 기어의 작동 가능 여부, 감속비, 기어별 회전 방향과 rpm을 계산 결과로 조회한다.",
+      "mutates": false,
+      "input": {
+        "additionalProperties": false,
+        "properties": {
+          "input_rpm": {
+            "default": 30.0,
+            "description": "입력축 회전 속도 (rpm)",
+            "maximum": 600,
+            "minimum": -600,
+            "title": "Input Rpm",
+            "type": "number"
+          }
+        },
+        "title": "RpmIn",
+        "type": "object"
+      },
+      "output": {
+        "$defs": {
+          "GearOut": {
+            "properties": {
+              "part_id": {
+                "title": "Part Id",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "teeth": {
+                "title": "Teeth",
+                "type": "integer"
+              },
+              "direction": {
+                "title": "Direction",
+                "type": "integer"
+              },
+              "direction_label": {
+                "title": "Direction Label",
+                "type": "string"
+              },
+              "speed_ratio": {
+                "title": "Speed Ratio",
+                "type": "number"
+              },
+              "rpm": {
+                "title": "Rpm",
+                "type": "number"
+              }
+            },
+            "required": [
+              "part_id",
+              "name",
+              "teeth",
+              "direction",
+              "direction_label",
+              "speed_ratio",
+              "rpm"
+            ],
+            "title": "GearOut",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "operable": {
+            "title": "Operable",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "input_rpm": {
+            "title": "Input Rpm",
+            "type": "number"
+          },
+          "reduction_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduction Ratio"
+          },
+          "gears": {
+            "items": {
+              "$ref": "#/$defs/GearOut"
+            },
+            "title": "Gears",
+            "type": "array"
+          }
+        },
+        "required": [
+          "operable",
+          "reasons",
+          "input_rpm",
+          "reduction_ratio",
+          "gears"
+        ],
+        "title": "MechanismOut",
+        "type": "object"
+      }
+    },
+    "run_visual_simulation": {
+      "description": "작동 모드 화면에서 기어 회전 시각화를 실행한다 (교육용 시각화).",
+      "mutates": false,
+      "input": {
+        "additionalProperties": false,
+        "properties": {
+          "input_rpm": {
+            "default": 30.0,
+            "description": "입력축 회전 속도 (rpm)",
+            "maximum": 600,
+            "minimum": -600,
+            "title": "Input Rpm",
+            "type": "number"
+          }
+        },
+        "title": "RpmIn",
+        "type": "object"
+      },
+      "output": {
+        "properties": {
+          "started": {
+            "title": "Started",
+            "type": "boolean"
+          },
+          "input_rpm": {
+            "title": "Input Rpm",
+            "type": "number"
+          },
+          "operable": {
+            "title": "Operable",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "started",
+          "input_rpm",
+          "operable",
+          "reasons"
+        ],
+        "title": "SimulationOut",
+        "type": "object"
+      }
+    },
+    "reset_assembly_step": {
+      "description": "현재 조립 단계의 부품을 작업대로 되돌린다.",
+      "mutates": true,
+      "input": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "NoArgs",
+        "type": "object"
+      },
+      "output": {
+        "properties": {
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "current_step": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Step"
+          }
+        },
+        "required": [
+          "removed",
+          "current_step"
+        ],
+        "title": "ResetOut",
+        "type": "object"
+      }
+    }
+  }
+}
