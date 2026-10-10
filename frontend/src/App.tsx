@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./App.module.css";
+import { CameraPanel } from "./features/camera/CameraPanel";
+import { useCamera } from "./features/camera/useCamera";
 import { commandBus } from "./features/commands/commandBus";
 import { KeyboardCommandSource } from "./features/commands/keyboardSource";
 import { MouseCommandSource } from "./features/commands/mouseSource";
@@ -13,6 +15,7 @@ export default function App() {
   const loadError = useLabStore((s) => s.loadError);
   const selectedId = useLabStore((s) => s.selectedPartId);
   const lastCommand = useLabStore((s) => s.lastCommand);
+  const camera = useCamera();
   const selected = model?.parts.find((p) => p.part_id === selectedId);
 
   useEffect(() => {
@@ -51,6 +54,13 @@ export default function App() {
       <main className={styles.stage}>
         <GearboxScene onCanvas={setCanvas} />
         {loadError && <div className={styles.error}>모델을 불러오지 못했습니다: {loadError}</div>}
+        <CameraPanel
+          videoRef={camera.videoRef}
+          status={camera.status}
+          error={camera.error}
+          onStart={camera.start}
+          onStop={camera.stop}
+        />
         <aside className={styles.hud}>
           <div>
             <strong>마지막 명령</strong> {lastCommand ?? "-"}
