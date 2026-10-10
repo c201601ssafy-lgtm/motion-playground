@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
 import { CameraPanel } from "./features/camera/CameraPanel";
 import { useCamera } from "./features/camera/useCamera";
 import { commandBus } from "./features/commands/commandBus";
 import { KeyboardCommandSource } from "./features/commands/keyboardSource";
 import { MouseCommandSource } from "./features/commands/mouseSource";
+import { TrackingStatus } from "./features/hand-tracking/TrackingStatus";
+import { useHandTracking } from "./features/hand-tracking/useHandTracking";
 import { getModel } from "./services/api";
 import { useLabStore } from "./store/labStore";
 import { GearboxScene } from "./three/GearboxScene";
@@ -16,6 +18,8 @@ export default function App() {
   const selectedId = useLabStore((s) => s.selectedPartId);
   const lastCommand = useLabStore((s) => s.lastCommand);
   const camera = useCamera();
+  const overlayRef = useRef<HTMLCanvasElement>(null);
+  useHandTracking(camera.videoRef, overlayRef, camera.status === "on");
   const selected = model?.parts.find((p) => p.part_id === selectedId);
 
   useEffect(() => {
@@ -60,7 +64,10 @@ export default function App() {
           error={camera.error}
           onStart={camera.start}
           onStop={camera.stop}
-        />
+          overlay={<canvas ref={overlayRef} />}
+        >
+          <TrackingStatus />
+        </CameraPanel>
         <aside className={styles.hud}>
           <div>
             <strong>마지막 명령</strong> {lastCommand ?? "-"}
