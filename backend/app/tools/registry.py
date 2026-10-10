@@ -56,7 +56,12 @@ class PartIdIn(_In):
 
 
 class RpmIn(_In):
-    input_rpm: float = Field(default=30.0, ge=-600, le=600, description="입력축 회전 속도 (rpm)")
+    input_rpm: float = Field(
+        default=30.0,
+        ge=-600,
+        le=600,
+        description="입력축 회전 속도 (rpm). 사용자가 값을 말하지 않았으면 30을 쓴다.",
+    )
 
 
 # ---------- 출력 ----------

@@ -342,7 +342,7 @@
         "properties": {
           "input_rpm": {
             "default": 30.0,
-            "description": "입력축 회전 속도 (rpm)",
+            "description": "입력축 회전 속도 (rpm). 사용자가 값을 말하지 않았으면 30을 쓴다.",
             "maximum": 600,
             "minimum": -600,
             "title": "Input Rpm",
@@ -452,7 +452,7 @@
         "properties": {
           "input_rpm": {
             "default": 30.0,
-            "description": "입력축 회전 속도 (rpm)",
+            "description": "입력축 회전 속도 (rpm). 사용자가 값을 말하지 않았으면 30을 쓴다.",
             "maximum": 600,
             "minimum": -600,
             "title": "Input Rpm",
