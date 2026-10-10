@@ -159,7 +159,7 @@ holoforge-ai-lab/
 | P4-3 | 튜터 루프 + API | /tutor | "작은 기어 역할?" → get_part_info 호출 후 답변 | 완료 | 실제 qwen3:8b: 작은 기어 역할→get_part_info, 반대 회전→get_mechanism_state(30), 잘못 끼움→get_assembly_error(90°→0°), 경고 0, pytest 115 |
 | P4-4 | 튜터 화면 | features/ai-tutor/ | 질문 → 답변 + 도구 내역 표시, "왜 틀렸어?" 버튼 | 완료 | 실제 qwen3: 조립 오류→왜 틀렸어?→90°→0° 설명, 3D 선택 부품 질문, 60rpm 돌려 봐→작동 모드 60rpm 전환, scrollIntoView Promise 크래시 수정, 콘솔 에러 0 |
 | P4-5 | 평가 스크립트 | eval_gestures.py, eval_tool_calls.py, reports/ | 두 스크립트 실행 → 리포트 생성 | 완료 | eval_gestures(합성 36클립·사진 녹화 1클립) 리포트 생성, eval_tool_calls mock 100%·qwen3 기준 75%→도구 강제 후 94%(인자 50→83%, 미근거 19→0%), pytest 116 |
-| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 대기 | |
+| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 진행중 | |
 
 ## 3. 완료 조건 추적 (spec §22)
 
