@@ -134,7 +134,7 @@ holoforge-ai-lab/
 | P2-3 | 분류기 + 상태 머신 + 필터 | features/gestures/, gesture-cases.jsonl, Python 포팅 | Vitest·pytest 동일 케이스 통과, HUD에 제스처 표시 | 완료 | 가상 손 4포즈 HUD 정확, 실제 손 사진→손바닥 펼치기, TS·Python 동일 33케이스(vitest 68, pytest 77) |
 | P2-4 | GestureCommandSource + 3D 연결 | 드래그 평면, 손 커서 | 집기로 부품 이동, 펼친 손 회전, 주먹 취소 수동 확인 | 완료 | 가상 손: 펼친 손 이동→yaw -0.40→0.79, 집기로 부품 이동, 손 치우면 놓기, 주먹→원위치 복원, 콘솔 에러 0, vitest 74 |
 | P2-5 | 녹화 화면 + 지연 계측 | /record, metrics/ | 2초 녹화 → JSONL 다운로드, HUD p50/p95 표시 | 완료 | 손 사진 영상 2초 녹화→JSONL 56프레임·29fps·이미지 없음, 지연 p95 랜드마크 31ms·프레임→명령 37ms, vitest 80 |
-| P2-6 | 이벤트 스키마 + 문서 | schemas/gesture-event.schema.json, gesture-spec.md | 프론트·백엔드 스키마 검증 테스트 통과 | 진행중 | |
+| P2-6 | 이벤트 스키마 + 문서 | schemas/gesture-event.schema.json, gesture-spec.md | 프론트·백엔드 스키마 검증 테스트 통과 | 완료 | Ajv(vitest 85)·jsonschema(pytest 80)로 파이프라인 이벤트·녹화 샘플 검증, 이미지 필드 거부 확인, build OK |
 
 ### Phase 3 — 분해·조립·작동 모드
 
