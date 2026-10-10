@@ -156,7 +156,7 @@ holoforge-ai-lab/
 |---|---|---|---|---|---|
 | P4-1 | LLMAdapter (Mock/Ollama) | app/ai/ | Mock으로 응답, Ollama 없으면 degraded 폴백 | 완료 | 실제 qwen3:8b가 get_part_info(gear-input-12t) 호출(4.8초), 잘못된 주소→Mock 폴백·degraded, pytest 98 |
 | P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 완료 | 실서버 세션에 도구 6개 실행: 상태 8| P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 진행중 | |8·오류 없음·36T 정보·감속비 3·시뮬레이션 action, 잘못된 part_id는 error 반환, pytest 107 |
-| P4-3 | 튜터 루프 + API | /tutor | "작은 기어 역할?" → get_part_info 호출 후 답변 | 대기 | |
+| P4-3 | 튜터 루프 + API | /tutor | "작은 기어 역할?" → get_part_info 호출 후 답변 | 진행중 | |
 | P4-4 | 튜터 화면 | features/ai-tutor/ | 질문 → 답변 + 도구 내역 표시, "왜 틀렸어?" 버튼 | 대기 | |
 | P4-5 | 평가 스크립트 | eval_gestures.py, eval_tool_calls.py, reports/ | 두 스크립트 실행 → 리포트 생성 | 대기 | |
 | P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 대기 | |
