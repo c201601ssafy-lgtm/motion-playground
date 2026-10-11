@@ -14,6 +14,8 @@ import { MouseCommandSource } from "./features/commands/mouseSource";
 import { GestureCommandSource } from "./features/gestures/gestureCommandSource";
 import { gestureEventBus } from "./features/gestures/gestureEventBus";
 import { GestureHud } from "./features/gestures/GestureHud";
+import { TwoHandCommandSource } from "./features/gestures/twoHandCommandSource";
+import { handFrameBus } from "./features/hand-tracking/frameBus";
 import { installDebugApi } from "./features/gestures/simulator";
 import { useGesturePipeline } from "./features/gestures/useGesturePipeline";
 import { OperatePanel } from "./features/simulation/OperatePanel";
@@ -33,8 +35,10 @@ function useInputSources(canvas: HTMLCanvasElement | null) {
   useEffect(() => {
     const keyboard = new KeyboardCommandSource(window);
     const gestures = new GestureCommandSource(gestureEventBus.subscribe, (c) => useLabStore.getState().setCursor(c));
+    const twoHands = new TwoHandCommandSource(handFrameBus.subscribe);
     keyboard.start(commandBus);
     gestures.start(commandBus);
+    twoHands.start(commandBus);
     const unsub = commandBus.subscribe(({ command, source }) => {
       if (command.type !== "HOVER" && command.type !== "MOVE_PART") {
         useLabStore.getState().setLastCommand(`${command.type} (${source})`);
@@ -43,6 +47,7 @@ function useInputSources(canvas: HTMLCanvasElement | null) {
     return () => {
       keyboard.stop();
       gestures.stop();
+      twoHands.stop();
       unsub();
     };
   }, []);

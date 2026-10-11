@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLabStore } from "../../store/labStore";
 import { commandBus } from "../commands/commandBus";
 
-/** 분해 모드: 들어오면 분해도, 나가면 원래대로. EXPLODE는 토글, ASSEMBLE_ALL은 접기. */
+/** 분해 모드: 들어오면 분해도, 나가면 원래대로. EXPLODE는 토글(on이 있으면 그 값), ASSEMBLE_ALL은 접기. */
 export function useDisassembleMode() {
   const mode = useLabStore((s) => s.mode);
 
@@ -15,7 +15,7 @@ export function useDisassembleMode() {
     if (mode === "lab") s.setFocus(null);
     return commandBus.subscribe(({ command }) => {
       const st = useLabStore.getState();
-      if (command.type === "EXPLODE") st.setExploded(!st.exploded);
+      if (command.type === "EXPLODE") st.setExploded(command.on ?? !st.exploded);
       else if (command.type === "ASSEMBLE_ALL") {
         st.setExploded(false);
         st.setPoses({});

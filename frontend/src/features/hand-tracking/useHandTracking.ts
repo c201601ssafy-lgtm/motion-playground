@@ -32,7 +32,7 @@ export function useHandTracking(
         }
         tracker = t;
         useTrackingStore.getState().set({ trackerStatus: "running", delegate: t.delegate });
-        t.start(video, (frame, timing) => {
+        t.start(video, (frame, timing, hands) => {
           const now = performance.now();
           if (lastFrameAt) fps = fps * 0.9 + (1000 / (now - lastFrameAt)) * 0.1;
           lastFrameAt = now;
@@ -41,10 +41,13 @@ export function useHandTracking(
           if (overlay) {
             if (overlay.width !== video.videoWidth) overlay.width = video.videoWidth;
             if (overlay.height !== video.videoHeight) overlay.height = video.videoHeight;
-            drawLandmarks(overlay, useTrackingStore.getState().showOverlay ? frame : null);
+            const show = useTrackingStore.getState().showOverlay;
+            drawLandmarks(overlay, show ? frame : null);
+            // 두 번째 손은 다른 색으로 겹쳐 그린다 (지우지 않음)
+            if (show) for (const h of hands) if (h !== frame) drawLandmarks(overlay, h, "#58a6ff", false);
           }
 
-          handFrameBus.publish(frame, timing);
+          handFrameBus.publish(frame, timing, hands);
 
           if (now - lastHud > HUD_INTERVAL_MS) {
             lastHud = now;

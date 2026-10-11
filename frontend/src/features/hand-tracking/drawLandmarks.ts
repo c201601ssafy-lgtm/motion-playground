@@ -2,12 +2,12 @@ import type { HandFrame } from "./types";
 import { HAND_CONNECTIONS } from "./types";
 
 /** 디버그 오버레이. 캔버스는 video와 같은 CSS 변환(거울)을 받으므로 원본 좌표로 그린다. */
-export function drawLandmarks(canvas: HTMLCanvasElement, frame: HandFrame | null, color = "#3fb950"): void {
+export function drawLandmarks(canvas: HTMLCanvasElement, frame: HandFrame | null, color = "#3fb950", clear = true): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const w = canvas.width;
   const h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
+  if (clear) ctx.clearRect(0, 0, w, h);
   if (!frame) return;
   const pts = frame.landmarks;
   ctx.lineWidth = 2;

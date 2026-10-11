@@ -15,7 +15,7 @@ export type Command =
   | { type: "RELEASE_PART"; screen: ScreenPoint }
   | { type: "ROTATE_MODEL"; dYaw: number; dPitch: number }
   | { type: "CANCEL" }
-  | { type: "EXPLODE" }
+  | { type: "EXPLODE"; on?: boolean }
   | { type: "ASSEMBLE_ALL" }
   | { type: "RESET_STEP" }
   | { type: "ROTATE_PART"; dYawDeg: number }

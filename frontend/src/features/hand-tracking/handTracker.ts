@@ -14,12 +14,20 @@ export interface FrameTiming {
   landmarkMs: number;
 }
 
-export type FrameListener = (frame: HandFrame | null, timing: FrameTiming) => void;
+/** frame: 주 손, hands: 보이는 모든 손 */
+export type FrameListener = (frame: HandFrame | null, timing: FrameTiming, hands: HandFrame[]) => void;
 
 type VideoWithRvfc = HTMLVideoElement & {
   requestVideoFrameCallback?: (cb: (now: number, meta: { expectedDisplayTime?: number }) => void) => number;
   cancelVideoFrameCallback?: (handle: number) => void;
 };
+
+/** 손이 둘이면 직전 주 손과 가까운 쪽을 고른다 (손 순서가 프레임마다 바뀌어도 한 손 제스처가 끊기지 않게). */
+export function pickPrimary(hands: HandFrame[], last: { x: number; y: number } | null): HandFrame | null {
+  if (hands.length < 2 || !last) return hands[0] ?? null;
+  const d = (h: HandFrame) => Math.hypot(h.palm_center.x - last.x, h.palm_center.y - last.y);
+  return hands.reduce((best, h) => (d(h) < d(best) ? h : best));
+}
 
 export class HandTracker {
   private running = false;
@@ -27,6 +35,8 @@ export class HandTracker {
   private lastVideoTime = -1;
   private video: VideoWithRvfc | null = null;
   private useRvfc = false;
+  /** 직전 주 손의 손바닥 위치. 손이 둘일 때 같은 손을 계속 주 손으로 고른다 */
+  private lastPrimary: { x: number; y: number } | null = null;
 
   private constructor(
     private readonly landmarker: HandLandmarker,
@@ -34,7 +44,7 @@ export class HandTracker {
   ) {}
 
   /** GPU 델리게이트를 먼저 시도하고 실패하면 CPU로 폴백한다. */
-  static async create(numHands = 1): Promise<HandTracker> {
+  static async create(numHands = 2): Promise<HandTracker> {
     // 카메라를 켤 때만 내려받는다 (초기 번들에서 제외)
     const { FilesetResolver, HandLandmarker } = await import("@mediapipe/tasks-vision");
     const fileset = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
@@ -70,22 +80,18 @@ export class HandTracker {
         const t0 = performance.now();
         const result = this.landmarker.detectForVideo(video, t0);
         const landmarkMs = performance.now() - t0;
-        const lm = result.landmarks[0];
-        const cat = result.handedness[0]?.[0];
-        let frame: HandFrame | null = null;
-        if (lm && lm.length === 21) {
+        const aspect = video.videoWidth / (video.videoHeight || 1);
+        const hands: HandFrame[] = [];
+        result.landmarks.forEach((lm, i) => {
+          if (lm.length !== 21) return;
+          const cat = result.handedness[i]?.[0];
           // MediaPipe의 handedness는 거울 반전 전 기준이라, 셀피 화면에서는 좌우가 뒤집혀 보인다.
           const label = cat?.categoryName?.toLowerCase() === "left" ? "right" : "left";
-          const aspect = video.videoWidth / (video.videoHeight || 1);
-          frame = buildHandFrame(
-            lm.map((p) => ({ x: p.x, y: p.y, z: p.z })),
-            label,
-            cat?.score ?? 0,
-            t0,
-            aspect,
-          );
-        }
-        onFrame(frame, { captureAt: now, landmarkMs });
+          hands.push(buildHandFrame(lm.map((p) => ({ x: p.x, y: p.y, z: p.z })), label, cat?.score ?? 0, t0, aspect));
+        });
+        const frame = pickPrimary(hands, this.lastPrimary);
+        this.lastPrimary = frame ? { x: frame.palm_center.x, y: frame.palm_center.y } : null;
+        onFrame(frame, { captureAt: now, landmarkMs }, hands);
       }
       this.handle = useRvfc ? v.requestVideoFrameCallback!(tick) : requestAnimationFrame(tick);
     };

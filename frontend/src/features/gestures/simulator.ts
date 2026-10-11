@@ -19,6 +19,8 @@ type PoseName = keyof typeof POSES;
 
 let timer: ReturnType<typeof setInterval> | null = null;
 let state: { pose: PoseName | null; x: number; y: number; roll: number } = { pose: null, x: 0.5, y: 0.5, roll: 0 };
+/** 두 번째 손 (양손 제스처 시험용). null이면 한 손 */
+let second: { pose: PoseName; x: number; y: number } | null = null;
 
 const PINCH_POSES = new Set<PoseName>(["PINCH", "PINCH_OK"]);
 
@@ -37,22 +39,32 @@ function tick() {
     handFrameBus.publish(null, { captureAt: now, landmarkMs: 0 });
     return;
   }
-  handFrameBus.publish(buildHandFrame(placedHand(state.pose, state.x, state.y, state.roll), "right", 0.95, now), {
-    captureAt: now,
-    landmarkMs: 0,
-  });
+  const primary = buildHandFrame(placedHand(state.pose, state.x, state.y, state.roll), "right", 0.95, now);
+  const hands = [primary];
+  if (second) hands.push(buildHandFrame(placedHand(second.pose, second.x, second.y), "left", 0.95, now));
+  handFrameBus.publish(primary, { captureAt: now, landmarkMs: 0 }, hands);
 }
 
 export const handSimulator = {
   /** 이미지 좌표(거울 반전 전)에 포즈를 둔다. pose=null이면 손이 사라짐. */
   hand(pose: PoseName | null, x = state.x, y = state.y, roll = 0) {
     state = { pose, x, y, roll };
+    if (!pose) second = null;
     if (!timer) timer = setInterval(tick, 33);
   },
   /** 캔버스 화면 좌표(0..1)에 포즈를 둔다 (toScreen의 역변환). */
   handScreen(pose: PoseName | null, sx: number, sy: number, roll = 0) {
     const g = GESTURE_MAPPING.screenGain;
     this.hand(pose, 1 - (0.5 + (sx - 0.5) / g), 0.5 + (sy - 0.5) / g, roll);
+  },
+  /** 두 손을 화면 중앙 기준 좌우로 sep(이미지 폭 비율)만큼 벌려 둔다. sep=null이면 두 손 모두 치운다. */
+  twoHands(sep: number | null, pose: PoseName = "OPEN_PALM") {
+    if (sep === null) {
+      this.hand(null);
+      return;
+    }
+    this.hand(pose, 0.5 + sep / 2, 0.5);
+    second = { pose, x: 0.5 - sep / 2, y: 0.5 };
   },
   stop() {
     if (timer) clearInterval(timer);

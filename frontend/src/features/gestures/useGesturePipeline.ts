@@ -4,6 +4,7 @@ import { handFrameBus } from "../hand-tracking/frameBus";
 import { latency } from "../metrics/latency";
 import { gestureEventBus } from "./gestureEventBus";
 import { GesturePipeline } from "./pipeline";
+import { bothPalmsOpen } from "./twoHand";
 
 const HUD_INTERVAL_MS = 100;
 
@@ -17,8 +18,10 @@ export function useGesturePipeline() {
       if (s.filter !== prev.filter) pipeline.setFilter(s.filter);
     });
 
-    const unsubFrames = handFrameBus.subscribe((frame, timing) => {
+    const unsubFrames = handFrameBus.subscribe((rawFrame, timing, hands) => {
       const now = performance.now();
+      // 두 손을 펼치면 양손 제스처(분해·조립) 중이다. 손을 벌리는 움직임이 모델 회전으로 새지 않게 한 손 제스처를 멈춘다.
+      const frame = bothPalmsOpen(hands) ? null : rawFrame;
       const { classification, events } = pipeline.process(frame, now);
       const t1 = performance.now();
       for (const e of events) gestureEventBus.publish(e);
