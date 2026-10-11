@@ -98,6 +98,7 @@ cd frontend && npm run typecheck && npm test && npm run build
 ## 문서
 
 - [구현 계획 / 진행 상태](docs/implementation-plan.md)
+- [진행 현황과 남은 일 (요약)](docs/status.md)
 - [결정 기록](docs/decision-log.md) · [원본 명세](docs/spec.md)
 - [아키텍처](docs/architecture.md) · [제스처 명세](docs/gesture-spec.md)
 - [실험 기록](docs/experiments.md) · [모델 선택](docs/model-selection.md)
