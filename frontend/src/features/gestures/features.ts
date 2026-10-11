@@ -87,6 +87,13 @@ export function pinchDistance(lmRaw: P[], aspect = 1): number {
   return dist2d(lm[LM.THUMB_TIP]!, lm[LM.INDEX_TIP]!) / (handSize(lm) || 1e-6);
 }
 
+/** 손 기울기(°, -180~180]. 손목→중지 MCP 방향. 위쪽 0, 이미지 오른쪽 +. 손가락 모양과 무관하다. */
+export function handRoll(lmRaw: P[], aspect = 1): number {
+  const lm = scaled(lmRaw, aspect);
+  const v = sub(lm[LM.MIDDLE_MCP]!, lm[LM.WRIST]!);
+  return (Math.atan2(v.x, -v.y) * 180) / Math.PI;
+}
+
 export function palmCenter(lm: P[]): P {
   const ids = [LM.WRIST, LM.INDEX_MCP, LM.MIDDLE_MCP, LM.RING_MCP, LM.PINKY_MCP];
   const sum = ids.reduce((acc, i) => ({ x: acc.x + lm[i]!.x, y: acc.y + lm[i]!.y, z: acc.z + lm[i]!.z }), {
@@ -113,6 +120,7 @@ export function buildHandFrame(
     finger_states: fingerStates(landmarks, aspect),
     finger_folded: fingerFolded(landmarks, aspect),
     hand_size: handSize(scaled(landmarks, aspect)),
+    roll_deg: handRoll(landmarks, aspect),
     timestamp,
   };
 }

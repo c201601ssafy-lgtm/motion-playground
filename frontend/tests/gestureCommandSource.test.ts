@@ -92,3 +92,43 @@ describe("GestureCommandSource", () => {
     expect(cursors.at(-1)).toBeNull();
   });
 });
+
+describe("손목 회전 → 부품 회전 (P5-6)", () => {
+  const pinch = (phase: GestureEvent["phase"], roll: number): GestureEvent => ({ ...ev("PINCH", phase), roll });
+  const rotations = (commands: Command[]) =>
+    commands.flatMap((c) => (c.type === "ROTATE_PART" ? [c.dYawDeg] : []));
+
+  it("집은 채 손목을 한 칸(7.5°)씩 돌릴 때마다 15°씩 돌린다", () => {
+    const { emit, commands } = setup();
+    emit(pinch("start", 0));
+    emit(pinch("hold", 5)); // 아직 한 칸 안 됨
+    expect(rotations(commands)).toEqual([]);
+    emit(pinch("hold", 16)); // 누적 16° → 두 칸
+    expect(rotations(commands)).toEqual([15, 15]);
+    emit(pinch("hold", 7)); // -9° → 누적 -8°(남은 1° 포함) → 반대로 한 칸
+    expect(rotations(commands)).toEqual([15, 15, -15]);
+  });
+
+  it("손 떨림(±3°)으로는 돌지 않는다", () => {
+    const { emit, commands } = setup();
+    emit(pinch("start", 10));
+    for (const r of [12, 8, 13, 9, 11, 7, 12]) emit(pinch("hold", r));
+    expect(rotations(commands)).toEqual([]);
+  });
+
+  it("±180° 경계를 넘어도 짧은 쪽으로 계산한다", () => {
+    const { emit, commands } = setup();
+    emit(pinch("start", 175));
+    emit(pinch("hold", -172)); // +13°
+    expect(rotations(commands)).toEqual([15]);
+  });
+
+  it("놓은 뒤에는 다시 잡을 때의 각도가 새 기준이다", () => {
+    const { emit, commands } = setup();
+    emit(pinch("start", 0));
+    emit(pinch("end", 0));
+    emit(pinch("start", 40));
+    emit(pinch("hold", 42));
+    expect(rotations(commands)).toEqual([]);
+  });
+});

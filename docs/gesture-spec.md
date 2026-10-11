@@ -15,6 +15,7 @@ MediaPipe Hand Landmarker(VIDEO 모드, numHands 1)의 21개 랜드마크로 만
 | `finger_states.thumb` | `bend(MCP,IP,TIP) < 50°` 그리고 `dist(엄지끝, 검지MCP)/hand_size > 0.55` |
 | `finger_folded.<finger>` | 접힘: 손끝이 PIP보다 손목에 가까움 (엄지 제외) |
 | `palm_center` | 0, 5, 9, 13, 17 평균 |
+| `roll_deg` | 손목(0) → 중지 MCP(9) 방향 각도. 이미지 위쪽 0°, 이미지 오른쪽 +, 종횡비 보정. 손가락 모양과 무관 (P5-6) |
 
 ## 2. 규칙 분류기
 
@@ -61,12 +62,14 @@ MediaPipe Hand Landmarker(VIDEO 모드, numHands 1)의 21개 랜드마크로 만
 | 이벤트 | Command |
 |---|---|
 | PINCH start / hold / end | `GRAB_PART` / `MOVE_PART` / `RELEASE_PART` |
+| PINCH hold 중 손목 회전 | `roll` 변화 7.5°마다 `ROTATE_PART(±15°)`. 이미지 + 방향(거울 화면에서 반시계) → +yaw. 잡을 때 각도가 기준 (P5-6) |
 | PINCH end 직후 같은 프레임에 FIST start | `RELEASE_PART` 대신 `CANCEL` |
 | OPEN_PALM hold | `ROTATE_MODEL(dYaw = -Δx·3π, dPitch = Δy·3π)` + `HOVER` |
 | FIST start | `CANCEL` |
 
 - 화면 좌표 = 거울 반전(1 − x) 후 중앙 기준 1.5배 확대, 0..1로 자름.
 - 부품 이동은 카메라를 향한 드래그 평면 위에서만 한다. 손 깊이(z)는 쓰지 않는다.
+- 손목 회전은 한 칸 단위(7.5°)로 끊어서 손 떨림(±3°)에는 반응하지 않는다. 손목 90°로 부품 180°(커버 뒤집기)를 할 수 있다. 휠·`[` `]` 키도 그대로 쓸 수 있다.
 
 ## 6. 이벤트 스키마
 
@@ -74,7 +77,7 @@ MediaPipe Hand Landmarker(VIDEO 모드, numHands 1)의 21개 랜드마크로 만
 
 ```json
 { "type": "PINCH", "phase": "hold", "position": { "x": 0.42, "y": 0.58, "z": -0.01 },
-  "delta": { "x": 0.004, "y": -0.002 }, "confidence": 0.93, "timestamp": 1834.2 }
+  "delta": { "x": 0.004, "y": -0.002 }, "roll": -12.5, "confidence": 0.93, "timestamp": 1834.2 }
 ```
 
 ## 7. 데이터 녹화
@@ -97,6 +100,7 @@ MediaPipe Hand Landmarker(VIDEO 모드, numHands 1)의 21개 랜드마크로 만
 - [ ] 부품 위에서 엄지·검지를 붙이면 부품이 초록색으로 잡히고 손을 따라온다.
 - [ ] 손가락을 떼면 그 자리에 놓인다.
 - [ ] 잡은 상태에서 주먹을 쥐면 원위치로 돌아간다.
+- [ ] 잡은 상태에서 손목을 돌리면(문고리 돌리듯) 부품이 15°씩 돈다. 화면에서 손이 도는 방향과 부품이 도는 방향이 같다. 가만히 들고 있을 때는 돌지 않는다.
 - [ ] 주먹을 쥘 때 "집기"로 잘못 바뀌지 않는다.
 - [ ] 손을 화면 밖으로 빼면 0.2초 안에 커서가 사라진다.
 - [ ] 어두운 조명에서 오인식이 늘면 HUD에서 필터를 바꿔 비교한다.

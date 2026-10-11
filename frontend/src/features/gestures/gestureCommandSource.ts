@@ -8,7 +8,14 @@ export const GESTURE_MAPPING = {
   screenGain: 1.5,
   /** 손 이동량(정규화) → 회전(rad). 화면 폭의 1/3을 움직이면 약 180° */
   rotateSensitivity: Math.PI * 3,
+  /** 집은 채 손목을 이만큼(°) 돌릴 때마다 부품을 한 칸 돌린다. 손목 90°로 부품 180° */
+  rollStepDeg: 7.5,
+  /** 부품 회전 한 칸(°). 휠·[ ] 키와 같다 */
+  partStepDeg: 15,
 };
+
+/** 각도 차이를 -180~180으로 */
+const wrapDeg = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
 
 type Subscribe = (listener: (e: GestureEvent) => void) => () => void;
 
@@ -28,6 +35,8 @@ export class GestureCommandSource implements CommandSource {
   private unsub: (() => void) | null = null;
   /** 집기 종료 직후 같은 프레임에 주먹이 시작되면 놓기 대신 취소하기 위해 잠깐 보류 */
   private pendingRelease: ScreenPoint | null = null;
+  /** 집기 중 손 기울기 추적: 마지막 각도와 아직 한 칸이 안 된 누적량 */
+  private roll: { last: number; acc: number } | null = null;
 
   constructor(
     private readonly subscribe: Subscribe,
@@ -40,9 +49,14 @@ export class GestureCommandSource implements CommandSource {
       this.onCursor(e.phase === "end" ? null : { screen, gesture: e.type });
       switch (e.type) {
         case "PINCH":
-          if (e.phase === "start") bus.publish({ type: "GRAB_PART", screen }, this.name);
-          else if (e.phase === "hold") bus.publish({ type: "MOVE_PART", screen }, this.name);
-          else {
+          if (e.phase === "start") {
+            this.roll = e.roll === undefined ? null : { last: e.roll, acc: 0 };
+            bus.publish({ type: "GRAB_PART", screen }, this.name);
+          } else if (e.phase === "hold") {
+            bus.publish({ type: "MOVE_PART", screen }, this.name);
+            this.rotateByRoll(bus, e.roll);
+          } else {
+            this.roll = null;
             // 상태 머신은 전환 시 end와 start를 같은 update에서 연달아 낸다.
             // 바로 뒤에 FIST:start가 오면 취소로 바꾸고, 아니면 다음 마이크로태스크에 놓는다.
             this.pendingRelease = screen;
@@ -69,6 +83,22 @@ export class GestureCommandSource implements CommandSource {
           break;
       }
     });
+  }
+
+  /**
+   * 손목을 돌리면 부품을 돌린다. 이미지에서 + 방향(오른쪽)으로 기울면 거울 화면에서는 반시계로 보이므로
+   * 부품도 위에서 볼 때 반시계(+yaw)로 돌린다. 한 칸 단위로 끊어 손 떨림에 흔들리지 않게 한다.
+   */
+  private rotateByRoll(bus: CommandBusLike, roll: number | undefined): void {
+    if (!this.roll || roll === undefined) return;
+    const { rollStepDeg, partStepDeg } = GESTURE_MAPPING;
+    this.roll.acc += wrapDeg(roll - this.roll.last);
+    this.roll.last = roll;
+    while (Math.abs(this.roll.acc) >= rollStepDeg) {
+      const dir = Math.sign(this.roll.acc);
+      this.roll.acc -= dir * rollStepDeg;
+      bus.publish({ type: "ROTATE_PART", dYawDeg: dir * partStepDeg }, this.name);
+    }
   }
 
   stop(): void {

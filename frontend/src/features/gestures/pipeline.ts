@@ -60,7 +60,9 @@ export class GesturePipeline {
       }
       return this.filter.filter(controlPoint(frame, kind), now);
     };
-    return { classification, events: this.machine.update(classification, positionOf, now) };
+    const events = this.machine.update(classification, positionOf, now);
+    for (const e of events) e.roll = frame.roll_deg;
+    return { classification, events };
   }
 
   reset(): void {

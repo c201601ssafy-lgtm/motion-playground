@@ -15,6 +15,8 @@ export interface GestureEvent {
   position: { x: number; y: number; z: number };
   /** 이전 이벤트 대비 이동량 */
   delta: { x: number; y: number };
+  /** 손 기울기(°, HandFrame.roll_deg). 집은 채 손목을 돌려 부품을 돌릴 때 쓴다 */
+  roll?: number;
   confidence: number;
   timestamp: number;
 }

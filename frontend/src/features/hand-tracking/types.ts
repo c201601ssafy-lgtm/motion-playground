@@ -19,6 +19,8 @@ export interface HandFrame {
   /** 손끝이 PIP보다 손목에 가까울 만큼 접혔는지 (엄지 제외). 주먹과 집기 구분용 */
   finger_folded: Record<Exclude<Finger, "thumb">, boolean>;
   hand_size: number; // 손목-중지 MCP 거리 (종횡비 보정)
+  /** 손 기울기(°): 손목→중지 MCP가 이미지 위쪽이면 0, 이미지 오른쪽으로 기울면 +. 부품 회전용 (P5-6) */
+  roll_deg: number;
   timestamp: number; // performance.now() ms
 }
 

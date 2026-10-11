@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildHandFrame, fingerFolded, fingerStates, pinchDistance } from "../src/features/gestures/features";
+import { buildHandFrame, fingerFolded, fingerStates, handRoll, pinchDistance } from "../src/features/gestures/features";
 import { POSES, syntheticHand } from "../src/features/gestures/synthetic";
 
 const ALL = { thumb: true, index: true, middle: true, ring: true, pinky: true };
@@ -49,5 +49,25 @@ describe("hand features", () => {
     expect(f.hand_size).toBeCloseTo(0.2);
     expect(f.palm_center.y).toBeLessThan(0.78);
     expect(f.timestamp).toBe(123);
+  });
+});
+
+describe("handRoll (P5-6)", () => {
+  it("손가락이 위를 향하면 0°, 손을 기울이면 기운 만큼", () => {
+    expect(handRoll(syntheticHand(POSES.OPEN_PALM))).toBeCloseTo(0, 5);
+    const tilted = handRoll(syntheticHand(POSES.PINCH, { roll: Math.PI / 6 }));
+    expect(Math.abs(tilted)).toBeCloseTo(30, 3);
+  });
+
+  it("손가락 모양이 바뀌어도(펼침→집기) 각도는 같다", () => {
+    const a = handRoll(syntheticHand(POSES.OPEN_PALM, { roll: 0.4 }));
+    const b = handRoll(syntheticHand(POSES.PINCH, { roll: 0.4 }));
+    expect(b).toBeCloseTo(a, 5);
+  });
+
+  it("종횡비를 보정한다", () => {
+    const lm = syntheticHand(POSES.OPEN_PALM, { roll: 0.5 });
+    const squeezed = lm.map((p) => ({ ...p, x: 0.5 + (p.x - 0.5) * (3 / 4) }));
+    expect(handRoll(squeezed, 4 / 3)).toBeCloseTo(handRoll(lm), 5);
   });
 });
