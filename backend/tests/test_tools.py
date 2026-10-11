@@ -85,7 +85,8 @@ def test_mechanism_and_simulation(ctx: ToolContext) -> None:
         "시계(위에서 볼 때)",
     }
     s = execute("run_visual_simulation", {"input_rpm": 45}, ctx)
-    assert s["started"]
+    assert s["started"] and s["reduction_ratio"] == 3
+    assert {g["name"]: g["rpm"] for g in s["gears"]}["출력 기어 (36T)"] == 15
     assert ctx.actions == [{"type": "run_simulation", "input_rpm": 45.0}]
 
 

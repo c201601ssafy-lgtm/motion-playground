@@ -2,13 +2,13 @@
   "provider": "ollama",
   "summary": {
     "cases": 16,
-    "tool_selection_rate": 0.9375,
-    "argument_accuracy": 0.8333,
+    "tool_selection_rate": 1.0,
+    "argument_accuracy": 1.0,
     "execution_success_rate": 1.0,
     "ungrounded_answer_rate": 0.0,
     "fact_match_rate": 0.9,
-    "latency_ms_p50": 7697.2,
-    "latency_ms_max": 20095.5,
+    "latency_ms_p50": 18690.4,
+    "latency_ms_max": 28590.9,
     "degraded_cases": 0
   },
   "results": [
@@ -29,8 +29,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "입력 기어(12T)는 입력축에 붙어 회전을 시작합니다. 작은 이빨 수로 인해 다른 큰 기어(24T)와 맞물릴 때 속도는 줄고, 힘은 늘어납니다.",
-      "latency_ms": 7661.0,
+      "answer": "입력 기어(12T)는 입력축에 붙어 회전을 시작합니다. 작은 이빨 수로 인해 다른 기어에 비해 빠르게 회전하며, 이 회전을 다음 기어(아이들러 기어)로 전달합니다.",
+      "latency_ms": 11034.7,
       "degraded": false
     },
     {
@@ -50,8 +50,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "아이들러 기어는 입력 기어와 출력 기어 사이에 위치해 회전 방향을 한 번 더 뒤집어, 출력 기어가 입력 기어와 같은 방향으로 회전하게 합니다. 기어비는 변하지 않지만, 회전 방향을 맞추는 역할을 합니다.",
-      "latency_ms": 6809.2,
+      "answer": "아이들러 기어는 입력 기어와 출력 기어 사이에 위치해 회전 방향을 바꾸고, 기어비를 조절해 속도를 줄이는 역할을 해요. 이로 인해 기계가 더 안정적으로 작동할 수 있어요.",
+      "latency_ms": 27353.4,
       "degraded": false
     },
     {
@@ -71,8 +71,8 @@
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "출력축은 감속된 회전을 바깥으로 전달하는 역할을 해요. 입력축의 회전이 아이들러 기어를 통해 줄어들면, 출력축은 이 느린 회전을 장치나 바퀴로 보내요. 아직 조립되지 않았어요.",
-      "latency_ms": 6732.3,
+      "answer": "출력축은 감속된 회전을 바깥으로 전달하는 역할을 합니다. 입력축의 회전이 아이들러 기어를 통해 전달되면서, 출력축은 출력 기어를 돌려 다른 기계에 힘을 전달합니다.",
+      "latency_ms": 23485.4,
       "degraded": false
     },
     {
@@ -92,8 +92,8 @@
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "상부 커버는 기어박스의 위쪽을 덮고, 축이 흔들리지 않게 고정해 주는 부품이야. 지금은 이미 조립 완료 상태야.",
-      "latency_ms": 14197.2,
+      "answer": "상부 커버는 기어를 덮고 축이 기울지 않게 고정해주는 부품이야. 지금은 이미 완전히 조립된 상태야.",
+      "latency_ms": 28590.9,
       "degraded": false
     },
     {
@@ -113,8 +113,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "입력 기어가 반시계 방향으로 회전하면, 아이들러 기어는 반대 방향(시계)으로 회전합니다. 이는 기어가 맞물리기 때문에 발생하는 자연스러운 현상입니다. 출력 기어는 다시 반시계 방향으로 회전하게 됩니다.",
-      "latency_ms": 14284.8,
+      "answer": "입력 기어가 반시계 방향으로 회전하면, 아이들러 기어는 시계 방향으로, 출력 기어는 다시 반시계 방향으로 회전해요. 이는 기어의 이빨이 맞물릴 때마다 회전 방향이 반대로 변하는 특성 때문입니다.",
+      "latency_ms": 21265.4,
       "degraded": false
     },
     {
@@ -134,8 +134,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "기어비가 3.0으로 설정되어 있어요. 입력축이 30rpm으로 회전하면, 출력축은 10rpm으로 느리게 회전해요. 기어비를 더 높이면 출력축의 회전 속도가 더 줄어들고, 힘은 더 커지게 됩니다.",
-      "latency_ms": 7811.5,
+      "answer": "기어비가 3.0으로 계산되어, 입력축이 30rpm으로 돌아도 출력축은 10rpm으로 돌아요. 기어비를 높이면 입력 속도를 출력 속도로 더 많이 줄여서 감속 효과가 커집니다.",
+      "latency_ms": 21379.0,
       "degraded": false
     },
     {
@@ -155,8 +155,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "입력 기어가 60rpm으로 회전하면 출력 기어는 20rpm으로 돌아요. 이는 입력 기어(12개 이빨)와 출력 기어(36개 이빨)의 이빨 수 비율(12:36 = 1:3)에 따라 감속비가 3:1이기 때문이에요.",
-      "latency_ms": 10221.6,
+      "answer": "입력 기어가 60rpm으로 회전하면 출력 기어는 20rpm으로 돌아요. 이는 12T 기어와 36T 기어의 이빨 수 비율(12:36 = 1:3)에 따라 감속비가 3:1이기 때문이에요.",
+      "latency_ms": 18734.6,
       "degraded": false
     },
     {
@@ -174,8 +174,8 @@
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "현재 조립 오류는 없습니다. 기어박스가 정상적으로 조립 중이며, 작동하지 않는다면 다른 부품의 위치나 연결 상태를 확인해 보세요.",
-      "latency_ms": 13104.5,
+      "answer": "현재 조립 오류는 없습니다. 기어박스가 제대로 조립되어 작동할 준비가 되었습니다. 문제가 해결되지 않으면, 다시 확인해 주세요!",
+      "latency_ms": 14506.0,
       "degraded": false
     },
     {
@@ -193,8 +193,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "베이스 플레이트를 90° 회전시켜 잘못 끼웠어요. 방향을 0°로 돌려서 다시 끼워주세요. 마우스 휠이나 [ ] 키로 조정할 수 있어요.",
-      "latency_ms": 4801.9,
+      "answer": "베이스 플레이트가 90° 회전해서 잘못 끼워졌어요. 방향을 0°로 돌려서 다시 끼워 주세요. 마우스 휠이나 [ ] 키로 조정할 수 있어요.",
+      "latency_ms": 16233.9,
       "degraded": false
     },
     {
@@ -212,8 +212,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "베이스 플레이트가 90° 회전되어 있습니다. 방향을 0°로 돌려서 정확한 위치에 놓아주세요. 마우스 휠이나 [ ] 키로 조정할 수 있습니다.",
-      "latency_ms": 4134.1,
+      "answer": "베이스 플레이트가 90° 회전되어 있습니다. 방향을 0°로 돌려서 놓아주세요. 마우스 휠이나 [ ] 키를 사용하면 됩니다.",
+      "latency_ms": 16563.0,
       "degraded": false
     },
     {
@@ -231,8 +231,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "입력 기어(12T)가 입력축에 맞물리지 않아요. 입력축을 먼저 조립해야 합니다. 입력축을 조립한 뒤, 입력 기어를 다시 놓아주세요.",
-      "latency_ms": 6371.3,
+      "answer": "입력 기어(12T)가 입력축에 맞물리지 않아요. 입력축을 먼저 조립한 뒤, 다시 입력 기어를 놓아주세요.",
+      "latency_ms": 17171.9,
       "degraded": false
     },
     {
@@ -250,8 +250,8 @@
       "ungrounded": false,
       "facts_ok": true,
       "warnings": [],
-      "answer": "현재 2단계입니다. 이 단계에서는 입력축, 아이들러축, 출력축을 세우는 중이에요. 베이스 플레이트만 조립되었고, 나머지 부품은 아직 설치하지 않았어요.",
-      "latency_ms": 12216.1,
+      "answer": "현재 2단계입니다. \"축 3개 세우기\"를 진행 중으로, 베이스 플레이트만 조립되었습니다. 입력축, 아이들러축, 출력축을 차례로 세워 나가세요.",
+      "latency_ms": 21728.6,
       "degraded": false
     },
     {
@@ -269,8 +269,8 @@
       "ungrounded": false,
       "facts_ok": false,
       "warnings": [],
-      "answer": "네, 조립이 완료됐어요. 모든 부품이 제대로 자리 잡혔고, 기어박스가 완성되었어요. 작동 상태를 확인해볼까요?",
-      "latency_ms": 20095.5,
+      "answer": "네, 조립이 완료됐어요. 모든 부품이 제대로 자리 잡혔고, 기어박스가 완성되었어요. 작동 상태를 확인하려면 \"작동시켜\"라고 말해 주세요!",
+      "latency_ms": 16248.6,
       "degraded": false
     },
     {
@@ -278,20 +278,20 @@
       "question": "45rpm으로 돌려 봐",
       "used_tools": [
         {
-          "name": "get_mechanism_state",
+          "name": "run_visual_simulation",
           "arguments": {
             "input_rpm": 45
           }
         }
       ],
-      "tool_selected": false,
-      "args_ok": false,
+      "tool_selected": true,
+      "args_ok": true,
       "exec_success": true,
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "45rpm으로 입력축을 돌리면, 출력축은 15rpm으로 반시계 방향으로 돌아요. 입력 기어는 반시계, 아이들러 기어는 시계, 출력 기어는 다시 반시계 방향으로 회전해요.",
-      "latency_ms": 5306.2,
+      "answer": "기어가 45rpm으로 회전합니다. 입력 기어는 반시계 방향으로 45rpm, 아이들러 기어는 시계 방향으로 22.5rpm, 출력 기어는 반시계 방향으로 15rpm으로 돌아갑니다. 감속비는 3:1입니다.",
+      "latency_ms": 19073.6,
       "degraded": false
     },
     {
@@ -311,8 +311,8 @@
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "현재 기어박스의 축과 기어들이 모두 조립되지 않았어요. 입력축, 아이들러축, 출력축과 입력 기어, 아이들러 기어, 출력 기어를 순서대로 조립해야 작동할 수 있어요.",
-      "latency_ms": 7733.5,
+      "answer": "현재 기어박스가 완전히 조립되지 않았어요. 입력축, 아이들러축, 출력축과 각 기어들이 모두 연결되지 않았기 때문에 작동할 수 없어요. 먼저 모든 부품을 제대로 조립해 주세요.",
+      "latency_ms": 18646.2,
       "degraded": false
     },
     {
@@ -330,8 +330,8 @@
       "ungrounded": false,
       "facts_ok": null,
       "warnings": [],
-      "answer": "이번 단계는 입력축과 아이들러축을 다시 조립해야 합니다. 현재 단계 2로 되돌아갔으니, 필요한 부품을 찾아 맞춰 보세요!",
-      "latency_ms": 4481.7,
+      "answer": "이번 단계는 입력축과 아이들러축이 제거된 상태입니다. 다시 조립할 준비가 되었으니, 필요한 부품을 선택해 조립해 보세요!",
+      "latency_ms": 14196.2,
       "degraded": false
     }
   ]

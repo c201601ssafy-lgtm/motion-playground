@@ -46,6 +46,23 @@
 
 다음 단계로 `run_visual_simulation` 설명에 "돌려 봐/작동시켜"를 예시로 넣고, 다시 측정한다.
 
+**후속 개선 (P5-1, 2026-10-11)**
+1. `run_visual_simulation` 설명에 "'45rpm으로 돌려 봐', '작동시켜 줘', '돌아가는 거 보여 줘'" 예시를 넣었다. `get_mechanism_state` 설명에는 "값을 묻는 질문용"이라고 구분을 적었다. 시스템 프롬프트 규칙 2에도 같은 대응을 추가했다.
+2. 1번 후 재측정에서 `simulate`가 맞는 도구를 골랐다. 하지만 답에 "3", "15"를 넣어 `UNGROUNDED_NUMBER:3,15`가 붙었다. 값은 맞았다(45 ÷ 3 = 15). 시뮬레이션 도구가 rpm을 돌려주지 않아 모델이 직접 계산한 것이다. 그래서 `run_visual_simulation` 결과에 `reduction_ratio`와 기어별 `gears`(방향·rpm)를 넣었다.
+
+| 지표 | P4-5 개선 후 | 설명 보강 | + 시뮬레이션 결과에 rpm |
+|---|---|---|---|
+| 도구 선택률 | 94% | 100% | **100%** |
+| 인자 정확도 | 83% | 100% | **100%** |
+| 미근거 숫자 답변 비율 | 0% | 6% | **0%** |
+| 사실 일치율 | 90% | 90% | 90% |
+| 지연 p50 / 최대 | 7.7 s / 20.1 s | 18.7 s / 28.0 s | 18.7 s / 28.6 s |
+
+- 지연이 늘어난 건 측정 PC가 바뀌어서다. 이번 PC는 RTX 4050 Laptop(VRAM 6GB)이라 qwen3:8b(6.0GB)가 다 올라가지 않는다. `ollama ps` 기준 CPU 30% / GPU 70%로 나뉘어 돈다. 같은 PC에서 측정한 두 열은 서로 비교할 수 있다. P4-5 열과는 비교하면 안 된다.
+- 남은 실패는 `progress-complete`("조립 다 끝났어?") 하나다. 도구는 맞췄지만 답에 부품 수 "8"을 쓰지 않았다(판정 기준이 엄격함).
+
+재현(측정 환경: Ollama 0.35.1, qwen3:8b Q4_K_M, RTX 4050 Laptop 6GB): `cd backend && LLM_PROVIDER=ollama uv run python scripts/eval_tool_calls.py --provider ollama`
+
 재현: `cd backend && LLM_PROVIDER=ollama uv run python scripts/eval_tool_calls.py --provider ollama`
 
 ---

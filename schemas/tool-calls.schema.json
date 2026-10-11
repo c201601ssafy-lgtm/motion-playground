@@ -335,7 +335,7 @@
       }
     },
     "get_mechanism_state": {
-      "description": "조립된 기어의 작동 가능 여부, 감속비, 기어별 회전 방향과 rpm을 계산 결과로 조회한다.",
+      "description": "조립된 기어의 작동 가능 여부, 감속비, 기어별 회전 방향과 rpm을 계산 결과로 조회한다. 값을 묻는 질문용이다. 화면에서 돌려 달라는 요청은 run_visual_simulation을 쓴다.",
       "mutates": false,
       "input": {
         "additionalProperties": false,
@@ -445,7 +445,7 @@
       }
     },
     "run_visual_simulation": {
-      "description": "작동 모드 화면에서 기어 회전 시각화를 실행한다 (교육용 시각화).",
+      "description": "작동 모드 화면에서 기어 회전 시각화를 실행한다 (교육용 시각화). '45rpm으로 돌려 봐', '작동시켜 줘', '돌아가는 거 보여 줘'처럼 기어를 실제로 돌려 달라는 요청이면 이 도구를 호출한다.",
       "mutates": false,
       "input": {
         "additionalProperties": false,
@@ -463,6 +463,51 @@
         "type": "object"
       },
       "output": {
+        "$defs": {
+          "GearOut": {
+            "properties": {
+              "part_id": {
+                "title": "Part Id",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "teeth": {
+                "title": "Teeth",
+                "type": "integer"
+              },
+              "direction": {
+                "title": "Direction",
+                "type": "integer"
+              },
+              "direction_label": {
+                "title": "Direction Label",
+                "type": "string"
+              },
+              "speed_ratio": {
+                "title": "Speed Ratio",
+                "type": "number"
+              },
+              "rpm": {
+                "title": "Rpm",
+                "type": "number"
+              }
+            },
+            "required": [
+              "part_id",
+              "name",
+              "teeth",
+              "direction",
+              "direction_label",
+              "speed_ratio",
+              "rpm"
+            ],
+            "title": "GearOut",
+            "type": "object"
+          }
+        },
         "properties": {
           "started": {
             "title": "Started",
@@ -482,13 +527,34 @@
             },
             "title": "Reasons",
             "type": "array"
+          },
+          "reduction_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduction Ratio"
+          },
+          "gears": {
+            "description": "시각화에 쓰인 기어별 회전 방향과 rpm",
+            "items": {
+              "$ref": "#/$defs/GearOut"
+            },
+            "title": "Gears",
+            "type": "array"
           }
         },
         "required": [
           "started",
           "input_rpm",
           "operable",
-          "reasons"
+          "reasons",
+          "reduction_ratio",
+          "gears"
         ],
         "title": "SimulationOut",
         "type": "object"

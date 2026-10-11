@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.ai.types import ToolSpec
 from app.assembly.engine import AssemblyEngine
-from app.assembly.schemas import AssemblyState, ErrorType
+from app.assembly.schemas import AssemblyState, ErrorType, MechanismState
 from app.core.db import SessionStore
 from app.core.korean import josa
 from app.core.model_loader import get_model
@@ -128,6 +128,8 @@ class SimulationOut(_Out):
     input_rpm: float
     operable: bool
     reasons: list[str]
+    reduction_ratio: float | None
+    gears: list[GearOut] = Field(description="시각화에 쓰인 기어별 회전 방향과 rpm")
 
 
 class ResetOut(_Out):
@@ -243,27 +245,38 @@ def get_mechanism_state(ctx: ToolContext, inp: RpmIn) -> MechanismOut:
         reasons=m.reasons,
         input_rpm=m.input_rpm,
         reduction_ratio=m.reduction_ratio,
-        gears=[
-            GearOut(
-                part_id=g.part_id,
-                name=_name(engine.model, g.part_id) or g.part_id,
-                teeth=g.teeth,
-                direction=g.direction,
-                direction_label=_direction_label(g.rpm),
-                speed_ratio=g.speed_ratio,
-                rpm=g.rpm,
-            )
-            for g in m.gears
-        ],
+        gears=_gears(engine, m),
     )
 
 
+def _gears(engine: AssemblyEngine, m: MechanismState) -> list[GearOut]:
+    return [
+        GearOut(
+            part_id=g.part_id,
+            name=_name(engine.model, g.part_id) or g.part_id,
+            teeth=g.teeth,
+            direction=g.direction,
+            direction_label=_direction_label(g.rpm),
+            speed_ratio=g.speed_ratio,
+            rpm=g.rpm,
+        )
+        for g in m.gears
+    ]
+
+
 def run_visual_simulation(ctx: ToolContext, inp: RpmIn) -> SimulationOut:
-    m = ctx.engine().mechanism_state(inp.input_rpm)
+    engine = ctx.engine()
+    m = engine.mechanism_state(inp.input_rpm)
     if m.operable:
         ctx.actions.append({"type": "run_simulation", "input_rpm": inp.input_rpm})
+    # 답변에 감속비·rpm을 쓸 수 있도록 계산 결과도 함께 돌려준다 (E-01: 미근거 숫자 방지)
     return SimulationOut(
-        started=m.operable, input_rpm=inp.input_rpm, operable=m.operable, reasons=m.reasons
+        started=m.operable,
+        input_rpm=inp.input_rpm,
+        operable=m.operable,
+        reasons=m.reasons,
+        reduction_ratio=m.reduction_ratio,
+        gears=_gears(engine, m),
     )
 
 
@@ -321,14 +334,21 @@ TOOLS: dict[str, Tool] = {
         ),
         Tool(
             "get_mechanism_state",
-            "조립된 기어의 작동 가능 여부, 감속비, 기어별 회전 방향과 rpm을 계산 결과로 조회한다.",
+            (
+                "조립된 기어의 작동 가능 여부, 감속비, 기어별 회전 방향과 rpm을 계산 결과로 조회한다. "
+                "값을 묻는 질문용이다. 화면에서 돌려 달라는 요청은 run_visual_simulation을 쓴다."
+            ),
             RpmIn,
             MechanismOut,
             get_mechanism_state,
         ),
         Tool(
             "run_visual_simulation",
-            "작동 모드 화면에서 기어 회전 시각화를 실행한다 (교육용 시각화).",
+            (
+                "작동 모드 화면에서 기어 회전 시각화를 실행한다 (교육용 시각화). "
+                "'45rpm으로 돌려 봐', '작동시켜 줘', '돌아가는 거 보여 줘'처럼 "
+                "기어를 실제로 돌려 달라는 요청이면 이 도구를 호출한다."
+            ),
             RpmIn,
             SimulationOut,
             run_visual_simulation,

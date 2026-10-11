@@ -3,12 +3,12 @@
 | 지표 | 값 |
 |---|---|
 | 케이스 | 16 |
-| 도구 선택률 | 94% |
-| 인자 정확도 | 83% |
+| 도구 선택률 | 100% |
+| 인자 정확도 | 100% |
 | 실행 성공률 | 100% |
 | 미근거 숫자 답변 비율 | 0% |
 | 사실 일치율 | 90% |
-| 지연 p50 / 최대 | 7697.2 / 20095.5 ms |
+| 지연 p50 / 최대 | 18690.4 / 28590.9 ms |
 | 폴백(degraded) | 0 |
 
 | 케이스 | 도구 | 선택 | 인자 | 사실 | 경고 |
@@ -26,6 +26,6 @@
 | missing-parent | get_assembly_error | ✅ | - | ✅ |  |
 | progress | get_assembly_state | ✅ | - | ✅ |  |
 | progress-complete | get_assembly_state | ✅ | - | ❌ |  |
-| simulate | get_mechanism_state | ❌ | ❌ | - |  |
+| simulate | run_visual_simulation | ✅ | ✅ | - |  |
 | simulate-incomplete | run_visual_simulation | ✅ | - | - |  |
 | reset | reset_assembly_step | ✅ | - | - |  |

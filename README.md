@@ -109,7 +109,7 @@ cd frontend && npm run typecheck && npm test && npm run build
 | 학습 기반 분류기 | 미구현 | RandomForest·1D CNN과 규칙 기반 비교 (spec §6) |
 | 양손 제스처 (분해·전체 조립) | 키보드 대체 | numHands 2, 양손 거리 변화 |
 | 손목 회전으로 부품 회전 | 휠·키 대체 | 손바닥 법선 각도 추정 |
-| qwen3 시뮬레이션 요청 인식 | E-01 실패 1건 | 도구 설명 보강 후 재측정 |
+| qwen3 시뮬레이션 요청 인식 | 해결 (P5-1): 도구 선택 100%, 미근거 숫자 0% | `progress-complete`의 답에 부품 수 빠짐 (1건) |
 | LLM 첫 응답 지연 20~40s | 모델 로딩 | 서버 시작 시 워밍업, keep_alive |
 | Rapier 물리 연출 | 미도입 | 잘못 놓은 부품 낙하 연출 |
 | Blender GLB 에셋 | 절차적 형상 | `PartVisual`에서 GLB 로더로 교체 |
