@@ -57,6 +57,9 @@ export interface LabState {
   hiddenParts: string[];
   cursor: HandCursor | null;
   falls: Record<string, FallRequest>;
+  /** 부품 ID → GLB URL (assets.json). 없으면 절차적 형상 (P5-9) */
+  partAssets: Record<string, string>;
+  setPartAssets: (assets: Record<string, string>) => void;
   triggerFall: (id: string, restY: number) => void;
   lastCommand: string | null;
   /** 부품을 놓았을 때 호출 (조립 판정 등). 없으면 놓은 자리에 그대로 둔다. */
@@ -102,6 +105,8 @@ export const useLabStore = create<LabState>((set) => ({
   hiddenParts: [],
   cursor: null,
   falls: {},
+  partAssets: {},
+  setPartAssets: (partAssets) => set({ partAssets }),
   triggerFall: (id, restY) =>
     set((s) => ({ falls: { ...s.falls, [id]: { nonce: (s.falls[id]?.nonce ?? 0) + 1, restY } } })),
   lastCommand: null,

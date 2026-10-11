@@ -29,3 +29,13 @@ export function projectPart(partId: string): { x: number; y: number } | null {
   const v = (found as THREE.Object3D).getWorldPosition(new THREE.Vector3()).project(camera);
   return { x: (v.x + 1) / 2, y: (1 - v.y) / 2 };
 }
+
+/** 부품을 이루는 메시 (이름, 형상 종류). GLB 교체 확인용. */
+export function partMeshes(partId: string): { name: string; geometry: string }[] {
+  const out: { name: string; geometry: string }[] = [];
+  modelGroup?.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (mesh.isMesh && mesh.userData.partId === partId) out.push({ name: mesh.name, geometry: mesh.geometry.type });
+  });
+  return out;
+}

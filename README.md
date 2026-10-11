@@ -114,5 +114,5 @@ cd frontend && npm run typecheck && npm test && npm run build
 | qwen3 시뮬레이션 요청 인식 | 해결 (P5-1): 도구 선택 100%, 미근거 숫자 0% | `progress-complete`의 답에 부품 수 빠짐 (1건) |
 | LLM 첫 응답 지연 | 서버 시작 시 예열 + `keep_alive=30m` (P5-2, E-04) | VRAM 6GB GPU에선 생성 자체가 17~20s → 8GB 이상 GPU 또는 4B 모델 검토 |
 | Rapier 물리 연출 | 오류 낙하 연출 (P5-5) | 부품을 경계 상자로 근사함. 실제 형상 충돌은 GLB 에셋과 함께 |
-| Blender GLB 에셋 | 절차적 형상 | `PartVisual`에서 GLB 로더로 교체 |
+| Blender GLB 에셋 | 로더 구현 (P5-9): `assets.json`에 적은 부품만 GLB, 실패 시 절차적 형상 | 실제 GLB 파일 제작([좌표 규칙](docs/architecture.md)) |
 | CalculiX / OpenFOAM | MVP 제외 | 별도 프로세스 연동 (spec §14) |

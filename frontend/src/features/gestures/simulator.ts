@@ -7,7 +7,7 @@
 
 import { useAssemblyStore } from "../../store/assemblyStore";
 import { useLabStore } from "../../store/labStore";
-import { projectModelPoint, projectPart } from "../../three/sceneProbe";
+import { partMeshes, projectModelPoint, projectPart } from "../../three/sceneProbe";
 import { useTrackingStore } from "../../store/trackingStore";
 import { handFrameBus } from "../hand-tracking/frameBus";
 import { LM } from "../hand-tracking/types";
@@ -99,6 +99,10 @@ export const handSimulator = {
   /** 모델 좌표의 화면 좌표 */
   screenOfPoint(x: number, y: number, z: number) {
     return projectModelPoint([x, y, z]);
+  },
+  /** 부품을 이루는 메시 (GLB 교체 확인용) */
+  partMeshes(partId: string) {
+    return partMeshes(partId);
   },
   /** 결합 지점의 화면 좌표 */
   screenOfSlot(slotId: string) {

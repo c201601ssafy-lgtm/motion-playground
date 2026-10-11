@@ -27,6 +27,7 @@ import { RecordPanel } from "./features/metrics/RecordPanel";
 import { ResultsPanel } from "./features/metrics/ResultsPanel";
 import { MODES, type Mode } from "./modes";
 import { getModel } from "./services/api";
+import { loadPartAssets } from "./three/partAssets";
 import { useLabStore } from "./store/labStore";
 import { GearboxScene } from "./three/GearboxScene";
 import { useModeRoute } from "./useHashRoute";
@@ -117,6 +118,8 @@ export default function App() {
     getModel("gearbox")
       .then(({ model: m, offline }) => useLabStore.getState().setModel(m, offline))
       .catch((e: Error) => useLabStore.getState().setLoadError(e.message));
+    // GLB 에셋 목록 (없으면 절차적 형상만)
+    void loadPartAssets("gearbox").then((assets) => useLabStore.getState().setPartAssets(assets));
   }, []);
 
   return (
