@@ -3,11 +3,12 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { nearestSlot } from "../features/assembly/assemblyLogic";
+import { FALL_HZ, type FallFrame, hashSeed, simulateFall } from "../features/assembly/fallEffect";
 import { commandBus } from "../features/commands/commandBus";
 import { MechanismOverlay } from "../features/simulation/MechanismOverlay";
 import type { ScreenPoint } from "../features/commands/types";
 import { useAssemblyStore } from "../store/assemblyStore";
-import { type PartPose, useLabStore } from "../store/labStore";
+import { type FallRequest, type PartPose, useLabStore } from "../store/labStore";
 import type { Part, Slot, Vec3 } from "../types/model";
 import { PartVisual } from "./PartVisual";
 import { registerSceneProbe } from "./sceneProbe";
@@ -16,6 +17,7 @@ const COVER_IDS = new Set(["top-cover"]);
 export const MODEL_CENTER: Vec3 = [1.2, 0.3, 0];
 const EXPLODE_SPEED = 4; // 1/s
 const SNAP_RATE = 12; // 위치 보간 속도 (1/s)
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 interface Hit {
   partId: string;
@@ -45,22 +47,86 @@ interface PartNodeProps {
   dimmed: boolean;
   /** 회전축(y) 기준 각속도 rad/s (작동 모드) */
   spin?: number;
+  /** 잘못 놓았을 때의 낙하 연출 요청 */
+  fall?: FallRequest;
+}
+
+/** 부품 루트 기준(회전 전) 경계 상자 */
+function localBox(root: THREE.Object3D): THREE.Box3 {
+  root.updateWorldMatrix(true, true);
+  const inv = root.matrixWorld.clone().invert();
+  const box = new THREE.Box3();
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.computeBoundingBox();
+    const b = mesh.geometry.boundingBox!.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, mesh.matrixWorld));
+    box.union(b);
+  });
+  return box;
 }
 
 /**
  * 부품 하나. 자세(pose)가 있으면 그 자리, 없으면 슬롯 위치 + 분해 오프셋.
  * 잡고 있을 때는 즉시 따라가고, 그 외에는 목표로 부드럽게 이동한다(스냅·복귀 애니메이션).
  */
-function PartNode({ part, slot, pose, exploded, dragging, highlighted, selected, dimmed, spin = 0 }: PartNodeProps) {
+function PartNode({ part, slot, pose, exploded, dragging, highlighted, selected, dimmed, spin = 0, fall }: PartNodeProps) {
   const root = useRef<THREE.Group>(null);
   const spinner = useRef<THREE.Group>(null);
   const t = useRef(exploded ? 1 : 0);
   const target = useRef(new THREE.Vector3());
+  const targetQ = useRef(new THREE.Quaternion());
   const initialized = useRef(false);
+  /** 낙하 연출: 계산 중이면 제자리에 멈추고, 궤적이 오면 재생한 뒤 원래 목표로 돌아간다 */
+  const falling = useRef<{ pending: boolean; frames: FallFrame[] | null; t: number }>({ pending: false, frames: null, t: 0 });
+
+  const fallNonce = fall?.nonce;
+  useEffect(() => {
+    const g = root.current;
+    if (!fall || !g) return;
+    const box = localBox(g);
+    const f = falling.current;
+    f.pending = true;
+    f.frames = null;
+    let cancelled = false;
+    simulateFall({
+      start: g.position.toArray() as Vec3,
+      rotation: g.quaternion.toArray() as [number, number, number, number],
+      boxMin: box.min.toArray() as Vec3,
+      boxMax: box.max.toArray() as Vec3,
+      groundY: fall.restY + box.min.y,
+      seed: hashSeed(part.part_id, fall.nonce),
+    })
+      .then((frames) => {
+        if (!cancelled) Object.assign(f, { frames, t: 0 });
+      })
+      .catch(() => undefined) // 물리 엔진을 못 불러오면 연출 없이 바로 돌아간다
+      .finally(() => {
+        f.pending = false;
+      });
+    return () => {
+      cancelled = true;
+      f.pending = false;
+      f.frames = null;
+    };
+    // fall 객체가 아니라 nonce가 바뀔 때만 재생한다
+  }, [fallNonce, part.part_id]);
 
   useFrame((_, dt) => {
     const g = root.current;
     if (!g) return;
+    const f = falling.current;
+    if (!dragging && f.frames) {
+      f.t += dt;
+      const frame = f.frames[Math.floor(f.t * FALL_HZ)];
+      if (frame) {
+        g.position.set(...frame.p);
+        g.quaternion.set(...frame.q);
+        return;
+      }
+      f.frames = null;
+    }
+    if (!dragging && f.pending) return;
     t.current = approach(t.current, exploded ? 1 : 0, dt * EXPLODE_SPEED);
     const e = t.current * t.current * (3 - 2 * t.current); // smoothstep
     let yawDeg: number;
@@ -72,15 +138,16 @@ function PartNode({ part, slot, pose, exploded, dragging, highlighted, selected,
       target.current.set(slot.position[0] + ox * e, slot.position[1] + oy * e, slot.position[2] + oz * e);
       yawDeg = slot.yaw_deg;
     }
-    const yaw = THREE.MathUtils.degToRad(yawDeg);
+    // 낙하 후에는 x·z축으로도 기울어 있으므로 회전은 쿼터니언으로 보간한다
+    targetQ.current.setFromAxisAngle(Y_AXIS, THREE.MathUtils.degToRad(yawDeg));
     if (dragging || !initialized.current) {
       g.position.copy(target.current);
-      g.rotation.y = yaw;
+      g.quaternion.copy(targetQ.current);
       initialized.current = true;
     } else {
       const k = 1 - Math.exp(-dt * SNAP_RATE);
       g.position.lerp(target.current, k);
-      g.rotation.y += (yaw - g.rotation.y) * k;
+      g.quaternion.slerp(targetQ.current, k);
     }
     if (spinner.current) spinner.current.rotation.y += spin * dt;
   });
@@ -168,6 +235,7 @@ function SceneContent() {
   const exploded = useLabStore((s) => s.exploded);
   const focus = useLabStore((s) => s.focusPartId);
   const spins = useLabStore((s) => s.spins);
+  const falls = useLabStore((s) => s.falls);
 
   useEffect(() => {
     registerSceneProbe(camera, modelGroup.current);
@@ -319,6 +387,7 @@ function SceneContent() {
                 selected={selected === part.part_id || dragging === part.part_id}
                 dimmed={!!focus && focus !== part.part_id}
                 spin={spins[part.part_id]}
+                fall={falls[part.part_id]}
               />
             );
           })}

@@ -17,6 +17,13 @@ export interface DropEvent {
   pose: PartPose;
 }
 
+/** 잘못 놓은 부품의 낙하 연출 요청 (P5-5). nonce가 바뀔 때마다 한 번 재생한다. */
+export interface FallRequest {
+  nonce: number;
+  /** 부품 원점이 쉬는 작업대 높이 (workbenchPose의 y) */
+  restY: number;
+}
+
 export interface LabState {
   mode: Mode;
   setMode: (mode: Mode) => void;
@@ -49,6 +56,8 @@ export interface LabState {
   /** 화면에 보이지 않는 부품 (조립 모드에서 아직 꺼내지 않은 부품 등) */
   hiddenParts: string[];
   cursor: HandCursor | null;
+  falls: Record<string, FallRequest>;
+  triggerFall: (id: string, restY: number) => void;
   lastCommand: string | null;
   /** 부품을 놓았을 때 호출 (조립 판정 등). 없으면 놓은 자리에 그대로 둔다. */
   onDrop: ((e: DropEvent) => void) | null;
@@ -92,6 +101,9 @@ export const useLabStore = create<LabState>((set) => ({
   poses: {},
   hiddenParts: [],
   cursor: null,
+  falls: {},
+  triggerFall: (id, restY) =>
+    set((s) => ({ falls: { ...s.falls, [id]: { nonce: (s.falls[id]?.nonce ?? 0) + 1, restY } } })),
   lastCommand: null,
   onDrop: null,
   setModel: (model, offline = false) => set({ model, offline, loadError: null }),

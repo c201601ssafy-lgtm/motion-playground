@@ -1,9 +1,11 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
-  plugins: [react()],
+  // wasm: Rapier(낙하 연출) wasm을 별도 파일로 둔다 (JS 청크에 base64로 넣지 않음)
+  plugins: [react(), wasm()],
   build: {
     // three는 나눌 수 없는 단일 라이브러리(약 740kB, gzip 187kB)라 기준을 그 위로 둔다.
     // 이 값을 넘는 청크가 생기면 앱 코드가 커진 것이므로 경고를 본다.

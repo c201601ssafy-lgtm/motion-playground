@@ -17,6 +17,9 @@
 | @mediapipe/tasks-vision | 1.1.0 | Apache-2.0 | 없음 (wasm은 jsDelivr CDN에서 로드) |
 | ajv / ajv-formats (dev) | 8.20.0 / 3.0.1 | MIT | 없음 |
 | tsx (dev) | 4.23.15 | MIT | 없음 |
+| @dimforge/rapier3d | 0.20.0 | Apache-2.0 | 없음 (낙하 연출, 조립 모드에서 지연 로드) |
+| @dimforge/rapier3d-compat (dev) | 0.20.0 | Apache-2.0 | 없음 (Node 테스트용, wasm 내장판) |
+| vite-plugin-wasm (dev) | 3.6.0 | MIT | 없음 |
 
 ## 백엔드 (Python)
 

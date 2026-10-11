@@ -7,6 +7,7 @@ import type { AssemblySnapshot } from "../../types/assembly";
 import type { MechanismModel } from "../../types/model";
 import { commandBus } from "../commands/commandBus";
 import { poseAfterAttempt, resultToast, workbenchPose } from "./assemblyLogic";
+import { loadRapier } from "./fallEffect";
 
 /** 조립 모드 시작 시점 (작업대와 조립 영역이 모두 보이는 각도) */
 const ASSEMBLY_VIEW = { yaw: 0, pitch: 0.5 };
@@ -84,6 +85,8 @@ async function onDrop(e: DropEvent) {
     });
     const lab = useLabStore.getState();
     const next = poseAfterAttempt(model, result, e.pose);
+    // 규칙 위반으로 작업대로 돌아가는 경우: 튕겨 떨어지는 연출 뒤에 돌아간다 (판정과 무관한 연출)
+    if (next && result.error_type !== "TOO_FAR") lab.triggerFall(e.partId, next.position[1]);
     if (next) lab.setPose(e.partId, next);
     else lab.clearPose(e.partId);
     lab.setLockedParts([...placedParts(snapshot)]);
@@ -156,6 +159,8 @@ export function useAssemblyMode() {
       useAssemblyStore.getState().set({ error: "백엔드 없이 실행 중이라 조립 판정을 할 수 없습니다." });
     } else {
       void ensureSession(model);
+      // 낙하 연출용 물리 엔진을 미리 받아 둔다. 실패해도 조립은 그대로 된다(연출만 생략).
+      loadRapier().catch((err) => console.warn("[fall] Rapier 로드 실패, 낙하 연출 생략", err));
       lab.setOnDrop((e) => void onDrop(e));
     }
     const unsub = commandBus.subscribe(({ command }) => {
