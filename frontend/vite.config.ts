@@ -4,6 +4,23 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // three는 나눌 수 없는 단일 라이브러리(약 740kB, gzip 187kB)라 기준을 그 위로 둔다.
+    // 이 값을 넘는 청크가 생기면 앱 코드가 커진 것이므로 경고를 본다.
+    chunkSizeWarningLimit: 800,
+    rolldownOptions: {
+      output: {
+        // 자주 안 바뀌는 라이브러리를 앱 코드와 나눠 캐시되게 한다
+        codeSplitting: {
+          groups: [
+            { name: "three", priority: 3, test: /node_modules\/three\// },
+            { name: "react", priority: 2, test: /node_modules\/(react|react-dom|scheduler|zustand)\// },
+            { name: "r3f", priority: 1, test: /node_modules\/(@react-three|three-stdlib|camera-controls|maath)\// },
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: { "/api": process.env.HOLOFORGE_API_URL ?? "http://localhost:8000" },

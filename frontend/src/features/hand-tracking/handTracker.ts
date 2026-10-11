@@ -1,4 +1,4 @@
-import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import type { HandLandmarker } from "@mediapipe/tasks-vision";
 import { buildHandFrame } from "../gestures/features";
 import type { HandFrame } from "./types";
 
@@ -35,6 +35,8 @@ export class HandTracker {
 
   /** GPU 델리게이트를 먼저 시도하고 실패하면 CPU로 폴백한다. */
   static async create(numHands = 1): Promise<HandTracker> {
+    // 카메라를 켤 때만 내려받는다 (초기 번들에서 제외)
+    const { FilesetResolver, HandLandmarker } = await import("@mediapipe/tasks-vision");
     const fileset = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
     for (const delegate of ["GPU", "CPU"] as const) {
       try {
