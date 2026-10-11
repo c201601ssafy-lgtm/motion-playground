@@ -57,6 +57,7 @@ Ollama가 꺼져 있거나 실패하면 규칙 기반 Mock으로 자동 폴백�
 cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest
 cd backend && uv run python scripts/eval_tool_calls.py --provider mock --min-selection 0.9
 cd backend && uv run python scripts/eval_gestures.py          # datasets/gestures/raw/*.jsonl 없으면 합성 샘플
+cd backend && uv sync --group ml && uv run python scripts/train_classifier.py   # RandomForest vs 규칙 (LOSO, 선택)
 cd frontend && npm run typecheck && npm test && npm run build
 ```
 
@@ -107,7 +108,7 @@ cd frontend && npm run typecheck && npm test && npm run build
 | 항목 | 상태 | 다음 단계 |
 |---|---|---|
 | 실제 사람 제스처 데이터 | 없음 (합성만) | 7명 × 4라벨 × 조명 3 녹화 → 재평가, 사용자 단위 분리 |
-| 학습 기반 분류기 | 미구현 | RandomForest·1D CNN과 규칙 기반 비교 (spec §6) |
+| 학습 기반 분류기 | RandomForest 비교 스크립트 (P5-8, E-05) | 실제 사람 데이터로 재측정, 1D CNN(시계열) |
 | 양손 제스처 (분해·전체 조립) | 구현 (P5-7): 두 손 펼쳐 벌리기/모으기 | 실제 손으로 확인([체크리스트](docs/gesture-spec.md)) |
 | 손목 회전으로 부품 회전 | 구현 (P5-6): 화면 평면 손 기울기 7.5°당 15° | 실제 손으로 확인([체크리스트](docs/gesture-spec.md)), 손바닥 법선(3D) 방식은 미구현 |
 | qwen3 시뮬레이션 요청 인식 | 해결 (P5-1): 도구 선택 100%, 미근거 숫자 0% | `progress-complete`의 답에 부품 수 빠짐 (1건) |

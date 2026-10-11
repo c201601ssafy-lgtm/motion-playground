@@ -1,0 +1,182 @@
+{
+  "source": "synthetic",
+  "inputs": [
+    "gesture-records-sample.jsonl"
+  ],
+  "frames": 1056,
+  "overall": {
+    "rf": {
+      "accuracy": 0.9991,
+      "macro_f1": 0.9991,
+      "recall": {
+        "OPEN_PALM": 1.0,
+        "PINCH": 0.9962,
+        "FIST": 1.0,
+        "NONE": 1.0
+      },
+      "n": 1056
+    },
+    "rule": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "recall": {
+        "OPEN_PALM": 1.0,
+        "PINCH": 1.0,
+        "FIST": 1.0,
+        "NONE": 1.0
+      },
+      "n": 1056
+    }
+  },
+  "folds": {
+    "syn01": {
+      "rf": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "train_n": 704
+    },
+    "syn02": {
+      "rf": {
+        "accuracy": 0.9972,
+        "macro_f1": 0.9972,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 0.9886,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "train_n": 704
+    },
+    "syn03": {
+      "rf": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 352
+      },
+      "train_n": 704
+    }
+  },
+  "by_lighting": {
+    "bright": {
+      "rf": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 360
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 360
+      }
+    },
+    "dim": {
+      "rf": {
+        "accuracy": 0.997,
+        "macro_f1": 0.997,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 0.9881,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 336
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 336
+      }
+    },
+    "normal": {
+      "rf": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 360
+      },
+      "rule": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "recall": {
+          "OPEN_PALM": 1.0,
+          "PINCH": 1.0,
+          "FIST": 1.0,
+          "NONE": 1.0
+        },
+        "n": 360
+      }
+    }
+  }
+}

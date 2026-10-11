@@ -34,6 +34,7 @@
 | ruff (dev) | 0.17.0 | MIT | 없음 |
 | httpx | 0.28.1 | BSD-3-Clause | 없음 (Ollama 호출) |
 | jsonschema (dev) | 4.26.0 | MIT | 없음 |
+| scikit-learn (ml 그룹, 선택) | 1.9.1 | BSD-3-Clause | 없음 (`train_classifier.py`만 사용) |
 
 ## 모델·런타임
 

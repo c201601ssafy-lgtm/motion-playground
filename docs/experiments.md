@@ -135,3 +135,28 @@
 - `keep_alive=30m` 효과(5분 넘게 쉰 뒤 질문)는 따로 재지 않았다.
 
 재현: `cd backend && uv run python scripts/measure_first_response.py --runs 2`
+
+---
+
+## E-05 학습 분류기(RandomForest) vs 규칙 분류기 (P5-8)
+
+**문제** — 규칙 분류기는 손가락 굽힘 각도와 집기 거리에 임계값을 둔 것이다. 학습 분류기가 사람마다 다른 손 모양을 더 잘 잡는지 확인하려 한다(spec §6).
+
+**방법** (`backend/scripts/train_classifier.py`)
+- 특징: 손목 원점, 손 크기 1로 정규화한 랜드마크 (x, y) 42개 + 규칙 분류기가 쓰는 손가락 특징 10개(펴짐 5, 접힘 4, 집기 거리).
+- 분류기: RandomForest 200그루(`random_state=0`).
+- 분리: 사용자 단위(leave-one-subject-out). 같은 사람의 프레임이 학습과 시험에 섞이면 점수가 부풀기 때문이다.
+- 손이 감지된 프레임만 비교했다.
+
+**결과** (`evals/reports/classifier-compare.md`, 합성 녹화 36클립 1,056프레임, 피험자 3명)
+
+| 분류기 | Accuracy | Macro F1 |
+|---|---|---|
+| 규칙 기반 | 100.0% | 1.000 |
+| RandomForest | 99.9% | 0.999 |
+
+**해석** — 합성 손은 규칙 분류기와 같은 가정(손가락 굽힘 각도)으로 만들었다. 그래서 규칙이 100%가 나오는 건 당연하고, 이 비교로는 어느 쪽이 나은지 말할 수 없다. 스크립트와 분리 방식이 돌아가는지만 확인한 것이다.
+
+**남은 일** — `#/record`로 7명 × 4라벨 × 조명 3(D-008)을 모아 `datasets/gestures/raw/`에 넣으면 같은 명령으로 다시 잰다. 그때 규칙이 틀리는 사람·조명에서 RF가 나은지, 시계열을 쓰는 1D CNN이 필요한지 판단한다.
+
+재현: `cd backend && uv sync --group ml && uv run python scripts/train_classifier.py`

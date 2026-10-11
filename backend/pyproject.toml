@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.6",
     "jsonschema>=4.26.0",
 ]
+ml = [
+    "scikit-learn>=1.5",
+]
 
 [tool.ruff]
 line-length = 100
