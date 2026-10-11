@@ -171,7 +171,7 @@ holoforge-ai-lab/
 | P5-2 | LLM 워밍업 + keep_alive | 서버 시작 시 모델 예열, `OLLAMA_KEEP_ALIVE` | 서버 기동 직후 첫 튜터 질문 지연 측정(개선 전후) | 완료 | 예열 6.8~7.1s(백그라운드, 기동 0.5s 유지), 첫 질문 평균 25.5→20.8s(2회), keep_alive 30m, pytest 120 |
 | P5-3 | 프론트 번들 분할 | vite manualChunks / 모드별 lazy | `npm run build` 500kB 경고 없음, 스모크(모드 전환) | 완료 | 단일 1371kB → 앱 75·react 221·r3f 183·three 737kB(단일 라이브러리, 경고 기준 800kB), MediaPipe 154kB는 카메라 켤 때만 로드, 7개 모드 전환·콘솔 에러 0, vitest 100 |
 | P5-4 | 진행 질문 답에 부품 수 | 진행 상황 답변 규칙·도구 출력 보강 | qwen3:8b `progress-complete` 사실 일치 | 진행중 | |
-| P5-5 | Rapier 오류 낙하 연출 | 잘못 놓은 부품 낙하 후 작업대 복귀 | 오류 시 낙하 연출, 콘솔 에러 0, vitest | 대기 | |
+| P5-5 | Rapier 오류 낙하 연출 | 잘못 놓은 부품 낙하 후 작업대 복귀 | 오류 시 낙하 연출, 콘솔 에러 0, vitest | 진행중 | |
 | P5-6 | 손목 회전으로 부품 회전 | 손바닥 법선/손목 각도 → ROTATE_PART | 가상 손 회전 포즈로 부품 yaw 변경, vitest | 대기 | |
 | P5-7 | 양손 제스처 | numHands 2, 양손 거리 → 분해/조립 | 가상 양손 벌리기/모으기로 분해 토글, vitest | 대기 | |
 | P5-8 | 학습 분류기 비교 | train_classifier.py (RandomForest, LOSO) | 합성 데이터로 실행·비교표, 실제 데이터 없으면 명시 | 대기 | |
