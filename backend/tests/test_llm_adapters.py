@@ -5,7 +5,7 @@ import pytest
 
 from app.ai.mock import MockAdapter, resolve_part, route
 from app.ai.ollama import OllamaAdapter
-from app.ai.provider import FallbackAdapter, LLMSettings, build_adapter
+from app.ai.provider import FallbackAdapter, LLMSettings, build_adapter, warmup
 from app.ai.types import LLMError, Message, ToolCall, ToolSpec
 
 TOOLS = [
@@ -131,3 +131,29 @@ def test_fallback_marks_degraded() -> None:
 def test_build_adapter_from_settings() -> None:
     assert build_adapter(LLMSettings(llm_provider="mock")).name == "mock"
     assert isinstance(build_adapter(LLMSettings(llm_provider="ollama")), FallbackAdapter)
+
+
+def test_ollama_sends_keep_alive_and_warms_up() -> None:
+    seen: list[tuple[str, dict]] = []
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        seen.append((req.url.path, json.loads(req.content)))
+        if req.url.path == "/api/generate":
+            return httpx.Response(200, json={"done": True})
+        return httpx.Response(200, json={"message": {"role": "assistant", "content": "ok"}})
+
+    adapter = OllamaAdapter(transport=httpx.MockTransport(handler), retries=0, keep_alive="1h")
+    assert adapter.warmup() >= 0
+    adapter.chat([Message(role="user", content="hi")], TOOLS)
+    assert seen[0] == ("/api/generate", {"model": "qwen3:8b", "keep_alive": "1h"})
+    assert seen[1][0] == "/api/chat" and seen[1][1]["keep_alive"] == "1h"
+
+
+def test_ollama_warmup_error_raises_llm_error() -> None:
+    with pytest.raises(LLMError):
+        _ollama_with(lambda req: httpx.Response(404)).warmup()
+
+
+def test_warmup_skipped_unless_ollama() -> None:
+    assert warmup(LLMSettings(llm_provider="mock")) is None
+    assert warmup(LLMSettings(llm_provider="ollama", ollama_warmup=False)) is None

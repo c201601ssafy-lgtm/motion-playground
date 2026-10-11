@@ -45,6 +45,7 @@ LLM_PROVIDER=ollama uv run uvicorn app.main:app --port 8000
 # PowerShell: $env:LLM_PROVIDER="ollama"; uv run uvicorn app.main:app --port 8000
 ```
 
+`LLM_PROVIDER=ollama`면 서버 시작 시 모델을 백그라운드로 미리 올리고(`OLLAMA_WARMUP`), `OLLAMA_KEEP_ALIVE`(기본 30m) 동안 메모리에 둔다.
 Ollama가 꺼져 있거나 실패하면 규칙 기반 Mock으로 자동 폴백한다. 이때 화면에 "LLM 연결 실패 → 규칙 기반 답변"이 표시된다. 환경변수는 `.env.example`에 있다.
 
 백엔드 포트를 바꾸면 프론트를 `HOLOFORGE_API_URL=http://localhost:8010 npm run dev`로 띄운다.
@@ -110,7 +111,7 @@ cd frontend && npm run typecheck && npm test && npm run build
 | 양손 제스처 (분해·전체 조립) | 키보드 대체 | numHands 2, 양손 거리 변화 |
 | 손목 회전으로 부품 회전 | 휠·키 대체 | 손바닥 법선 각도 추정 |
 | qwen3 시뮬레이션 요청 인식 | 해결 (P5-1): 도구 선택 100%, 미근거 숫자 0% | `progress-complete`의 답에 부품 수 빠짐 (1건) |
-| LLM 첫 응답 지연 20~40s | 모델 로딩 | 서버 시작 시 워밍업, keep_alive |
+| LLM 첫 응답 지연 | 서버 시작 시 예열 + `keep_alive=30m` (P5-2, E-04) | VRAM 6GB GPU에선 생성 자체가 17~20s → 8GB 이상 GPU 또는 4B 모델 검토 |
 | Rapier 물리 연출 | 미도입 | 잘못 놓은 부품 낙하 연출 |
 | Blender GLB 에셋 | 절차적 형상 | `PartVisual`에서 GLB 로더로 교체 |
 | CalculiX / OpenFOAM | MVP 제외 | 별도 프로세스 연동 (spec §14) |

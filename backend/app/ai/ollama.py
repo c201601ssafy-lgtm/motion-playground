@@ -41,10 +41,12 @@ class OllamaAdapter:
         model: str = "qwen3:8b",
         timeout_s: float = 60.0,
         retries: int = 1,
+        keep_alive: str = "30m",
         transport: httpx.BaseTransport | None = None,
     ) -> None:
         self.model = model
         self.retries = retries
+        self.keep_alive = keep_alive
         self._client = httpx.Client(base_url=base_url, timeout=timeout_s, transport=transport)
 
     def chat(self, messages: list[Message], tools: list[ToolSpec]) -> LLMResponse:
@@ -65,6 +67,7 @@ class OllamaAdapter:
             "stream": False,
             "think": False,
             "options": {"temperature": 0.2},
+            "keep_alive": self.keep_alive,
         }
         last: Exception | None = None
         for _ in range(self.retries + 1):
@@ -94,6 +97,18 @@ class OllamaAdapter:
                 latency_ms=round((time.perf_counter() - t0) * 1000, 1),
             )
         raise LLMError(f"Ollama 호출 실패: {last}")
+
+    def warmup(self) -> float:
+        """모델을 메모리에 미리 올린다(프롬프트 없는 /api/generate). 걸린 시간(ms)을 돌려준다."""
+        t0 = time.perf_counter()
+        try:
+            res = self._client.post(
+                "/api/generate", json={"model": self.model, "keep_alive": self.keep_alive}
+            )
+            res.raise_for_status()
+        except httpx.HTTPError as err:
+            raise LLMError(f"Ollama 워밍업 실패: {err}") from err
+        return round((time.perf_counter() - t0) * 1000, 1)
 
     def available(self) -> bool:
         try:

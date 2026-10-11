@@ -17,6 +17,8 @@ class LLMSettings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:8b"
     ollama_timeout_s: float = 60.0
+    ollama_keep_alive: str = "30m"
+    ollama_warmup: bool = True
 
 
 class FallbackAdapter:
@@ -41,10 +43,28 @@ def build_adapter(settings: LLMSettings | None = None) -> LLMAdapter | FallbackA
     s = settings or LLMSettings()
     if s.llm_provider == "ollama":
         return FallbackAdapter(
-            OllamaAdapter(s.ollama_base_url, s.ollama_model, timeout_s=s.ollama_timeout_s),
+            OllamaAdapter(
+                s.ollama_base_url,
+                s.ollama_model,
+                timeout_s=s.ollama_timeout_s,
+                keep_alive=s.ollama_keep_alive,
+            ),
             MockAdapter(),
         )
     return MockAdapter()
+
+
+def warmup(settings: LLMSettings) -> float | None:
+    """Ollama 모델을 미리 올린다. 첫 튜터 질문의 모델 로딩 지연(20~40s)을 서버 시작 시점으로 옮긴다."""
+    if settings.llm_provider != "ollama" or not settings.ollama_warmup:
+        return None
+    adapter = OllamaAdapter(
+        settings.ollama_base_url,
+        settings.ollama_model,
+        timeout_s=max(settings.ollama_timeout_s, 120.0),
+        keep_alive=settings.ollama_keep_alive,
+    )
+    return adapter.warmup()
 
 
 @lru_cache
