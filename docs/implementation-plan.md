@@ -169,6 +169,15 @@ holoforge-ai-lab/
 |---|---|---|---|---|---|
 | P5-1 | 시뮬레이션 요청 인식 (E-01 잔여) | 도구 설명·프롬프트 보강, experiments.md E-01 재측정 | qwen3:8b로 `eval_tool_calls.py --provider ollama` → `simulate` 케이스 통과 | 완료 | qwen3:8b: simulate→run_visual_simulation(45), 선택 94→100%·인자 83→100%·미근거 0%(시뮬레이션 결과에 rpm 추가), pytest 120 |
 | P5-2 | LLM 워밍업 + keep_alive | 서버 시작 시 모델 예열, `OLLAMA_KEEP_ALIVE` | 서버 기동 직후 첫 튜터 질문 지연 측정(개선 전후) | 완료 | 예열 6.8~7.1s(백그라운드, 기동 0.5s 유지), 첫 질문 평균 25.5→20.8s(2회), keep_alive 30m, pytest 120 |
+| P5-3 | 프론트 번들 분할 | vite manualChunks / 모드별 lazy | `npm run build` 500kB 경고 없음, 스모크(모드 전환) | 대기 | |
+| P5-4 | 진행 질문 답에 부품 수 | 진행 상황 답변 규칙·도구 출력 보강 | qwen3:8b `progress-complete` 사실 일치 | 대기 | |
+| P5-5 | Rapier 오류 낙하 연출 | 잘못 놓은 부품 낙하 후 작업대 복귀 | 오류 시 낙하 연출, 콘솔 에러 0, vitest | 대기 | |
+| P5-6 | 손목 회전으로 부품 회전 | 손바닥 법선/손목 각도 → ROTATE_PART | 가상 손 회전 포즈로 부품 yaw 변경, vitest | 대기 | |
+| P5-7 | 양손 제스처 | numHands 2, 양손 거리 → 분해/조립 | 가상 양손 벌리기/모으기로 분해 토글, vitest | 대기 | |
+| P5-8 | 학습 분류기 비교 | train_classifier.py (RandomForest, LOSO) | 합성 데이터로 실행·비교표, 실제 데이터 없으면 명시 | 대기 | |
+| P5-9 | GLB 에셋 로더 | PartVisual GLB 교체 구조, 파일 없으면 절차적 폴백 | GLB 있으면 로드·없으면 기존 형상, 콘솔 에러 0 | 대기 | |
+| P5-10 | 실제 사람 제스처 데이터 | datasets/gestures/raw/ | 7명 × 4라벨 × 조명 3 녹화 | 보류 | 사람 녹화 필요(코드로 대체 불가) |
+| P5-11 | CalculiX / OpenFOAM | 별도 프로세스 연동 | - | 보류 | MVP 범위 밖(spec §14) |
 
 ## 3. 완료 조건 추적 (spec §22)
 
