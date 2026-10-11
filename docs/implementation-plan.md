@@ -174,7 +174,7 @@ holoforge-ai-lab/
 | P5-5 | Rapier 오류 낙하 연출 | 잘못 놓은 부품 낙하 후 작업대 복귀 | 오류 시 낙하 연출, 콘솔 에러 0, vitest | 완료 | 축을 베이스보다 먼저 놓음→MISSING_PARENT 후 튀어 올라 떨어진 뒤 작업대 복귀(1.2초), Rapier 203kB+wasm 2MB는 조립 모드 진입 시 로드, 빌드 경고 없음, 콘솔 에러 0, vitest 103 |
 | P5-6 | 손목 회전으로 부품 회전 | 손바닥 법선/손목 각도 → ROTATE_PART | 가상 손 회전 포즈로 부품 yaw 변경, vitest | 완료 | 가상 손 집기 후 0.8rad(46°) 기울임→출력 기어 yaw 0→-90°(15°×6), 되돌리면 -60°, 떨림 ±3° 무반응·±180° 경계 테스트, 콘솔 에러 0, vitest 110 |
 | P5-7 | 양손 제스처 | numHands 2, 양손 거리 → 분해/조립 | 가상 양손 벌리기/모으기로 분해 토글, vitest | 완료 | 분해 모드 가상 양손: 모으기→ASSEMBLE_ALL(접힘)·벌리기→EXPLODE(분해), 그동안 모델 yaw 불변, 한 손 집기·손목 회전 회귀 없음, 콘솔 에러 0, vitest 119 |
-| P5-8 | 학습 분류기 비교 | train_classifier.py (RandomForest, LOSO) | 합성 데이터로 실행·비교표, 실제 데이터 없으면 명시 | 대기 | |
+| P5-8 | 학습 분류기 비교 | train_classifier.py (RandomForest, LOSO) | 합성 데이터로 실행·비교표, 실제 데이터 없으면 명시 | 진행중 | |
 | P5-9 | GLB 에셋 로더 | PartVisual GLB 교체 구조, 파일 없으면 절차적 폴백 | GLB 있으면 로드·없으면 기존 형상, 콘솔 에러 0 | 대기 | |
 | P5-10 | 실제 사람 제스처 데이터 | datasets/gestures/raw/ | 7명 × 4라벨 × 조명 3 녹화 | 보류 | 사람 녹화 필요(코드로 대체 불가) |
 | P5-11 | CalculiX / OpenFOAM | 별도 프로세스 연동 | - | 보류 | MVP 범위 밖(spec §14) |
