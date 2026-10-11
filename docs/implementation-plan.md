@@ -143,8 +143,8 @@ holoforge-ai-lab/
 | ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
 |---|---|---|---|---|---|
 | P3-1 | 모드 상태 + 탭 | store, SET_MODE | 탭·단축키로 6개 모드 전환 | 완료 | 키 1~7·탭 클릭·직접 URL로 7개 모드 전환, 해시 동기화, 콘솔 에러 0, vitest 87 |
-| P3-2 | 분해 모드 | explode 애니메이션, 부품 목록 | E키로 분해, 목록 클릭 시 포커스 | 완료 | 키 2로 분해도 진입·화면 맞춤, 목록 클릭→아이들러 기어 포커스·설명, E 토글, | P3-2 | 분해 모드 | explode 애니메이션, 부품 목록 | E키로 분해, 목록 클릭 시 포커스 | 진행중 | |api 차단 시 정적 모델로 보기 전용, 콘솔 에러 0 |
-| P3-3 | 조립 모드 | 슬롯 고스트, attempt 연동, 오류 토스트, 진행률 | 올바른 슬롯 스냅, 잘못된 슬롯/순서/방향 오류 표시 | 완료 | 마우스로 8부품 전체 조립 성공(10.4초), MISSING_PARENT·WRONG_ORIENTATION(기대 0°| P3-3 | 조립 모드 | 슬롯 고스트, attempt 연동, 오류 토스트, 진행률 | 올바른 슬롯 스냅, 잘못된 슬롯/순서/방향 오류 표시 | 진행중 | |현재 90°)·WRONG_SLOT 토스트, 가상 손 집기로 결합 성공, R| P3-3 | 조립 모드 | 슬롯 고스트, attempt 연동, 오류 토스트, 진행률 | 올바른 슬롯 스냅, 잘못된 슬롯/순서/방향 오류 표시 | 진행중 | |A 동작, 콘솔 에러 0 |
+| P3-2 | 분해 모드 | explode 애니메이션, 부품 목록 | E키로 분해, 목록 클릭 시 포커스 | 완료 | 키 2로 분해도 진입·화면 맞춤, 목록 클릭→아이들러 기어 포커스·설명, E 토글, /api 차단 시 정적 모델로 보기 전용, 콘솔 에러 0 |
+| P3-3 | 조립 모드 | 슬롯 고스트, attempt 연동, 오류 토스트, 진행률 | 올바른 슬롯 스냅, 잘못된 슬롯/순서/방향 오류 표시 | 완료 | 마우스로 8부품 전체 조립 성공(10.4초), MISSING_PARENT·WRONG_ORIENTATION(기대 0°/현재 90°)·WRONG_SLOT 토스트, 가상 손 집기로 결합 성공, R/A 동작, 콘솔 에러 0 |
 | P3-4 | 작동 모드 | rpm 슬라이더, 방향 화살표 | 아이들러 반대 방향, 출력 1/3 속도 | 완료 | 자동 조립 후 입력 30rpm→아이들러 -15(시계)·출력 10rpm(반시계), 감속비 3:1, -30rpm 방향 반전, 미조립 시 사유 6개 표시, 콘솔 에러 0, vitest 97 |
 | P3-5 | 이벤트 로그 + 테스트 | events API, assembly-cases 10+ | API 통합 테스트 통과 | 완료 | 실서버 조립 시나리오→events 14건, 요약 시도 11·성공 8·오류 3종·리셋 1·완료 9.94초, pytest 82 |
 
@@ -155,11 +155,11 @@ holoforge-ai-lab/
 | ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
 |---|---|---|---|---|---|
 | P4-1 | LLMAdapter (Mock/Ollama) | app/ai/ | Mock으로 응답, Ollama 없으면 degraded 폴백 | 완료 | 실제 qwen3:8b가 get_part_info(gear-input-12t) 호출(4.8초), 잘못된 주소→Mock 폴백·degraded, pytest 98 |
-| P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 완료 | 실서버 세션에 도구 6개 실행: 상태 8| P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 진행중 | |8·오류 없음·36T 정보·감속비 3·시뮬레이션 action, 잘못된 part_id는 error 반환, pytest 107 |
+| P4-2 | 도구 6개 + 스키마 | app/tools/, tool-calls.schema.json | 도구 단위 테스트, 스키마 내보내기 | 완료 | 실서버 세션에 도구 6개 실행: 상태 8/8·오류 없음·36T 정보·감속비 3·시뮬레이션 action, 잘못된 part_id는 error 반환, pytest 107 |
 | P4-3 | 튜터 루프 + API | /tutor | "작은 기어 역할?" → get_part_info 호출 후 답변 | 완료 | 실제 qwen3:8b: 작은 기어 역할→get_part_info, 반대 회전→get_mechanism_state(30), 잘못 끼움→get_assembly_error(90°→0°), 경고 0, pytest 115 |
 | P4-4 | 튜터 화면 | features/ai-tutor/ | 질문 → 답변 + 도구 내역 표시, "왜 틀렸어?" 버튼 | 완료 | 실제 qwen3: 조립 오류→왜 틀렸어?→90°→0° 설명, 3D 선택 부품 질문, 60rpm 돌려 봐→작동 모드 60rpm 전환, scrollIntoView Promise 크래시 수정, 콘솔 에러 0 |
 | P4-5 | 평가 스크립트 | eval_gestures.py, eval_tool_calls.py, reports/ | 두 스크립트 실행 → 리포트 생성 | 완료 | eval_gestures(합성 36클립·사진 녹화 1클립) 리포트 생성, eval_tool_calls mock 100%·qwen3 기준 75%→도구 강제 후 94%(인자 50→83%, 미근거 19→0%), pytest 116 |
-| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 완료 | 결과 화면: 지연 p50| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 진행중 | |p95·세션(시도 2·오류 MISSING_PARENT 1)·제스처 평가·도구 호출 개선 전후 표시, JSON 내보내기, pytest 117·vitest 100·build OK |
+| P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 완료 | 결과 화면: 지연 p50/p95·세션(시도 2·오류 MISSING_PARENT 1)·제스처 평가·도구 호출 개선 전후 표시, JSON 내보내기, pytest 117·vitest 100·build OK |
 
 ## 3. 완료 조건 추적 (spec §22)
 
