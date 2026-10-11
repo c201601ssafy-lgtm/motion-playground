@@ -167,7 +167,7 @@ holoforge-ai-lab/
 
 | ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
 |---|---|---|---|---|---|
-| P5-1 | 시뮬레이션 요청 인식 (E-01 잔여) | 도구 설명·프롬프트 보강, experiments.md E-01 재측정 | qwen3:8b로 `eval_tool_calls.py --provider ollama` → `simulate` 케이스 통과 | 진행중 | |
+| P5-1 | 시뮬레이션 요청 인식 (E-01 잔여) | 도구 설명·프롬프트 보강, experiments.md E-01 재측정 | qwen3:8b로 `eval_tool_calls.py --provider ollama` → `simulate` 케이스 통과 | 완료 | qwen3:8b: simulate→run_visual_simulation(45), 선택 94→100%·인자 83→100%·미근거 0%(시뮬레이션 결과에 rpm 추가), pytest 120 |
 | P5-2 | LLM 워밍업 + keep_alive | 서버 시작 시 모델 예열, `OLLAMA_KEEP_ALIVE` | 서버 기동 직후 첫 튜터 질문 지연 측정(개선 전후) | 대기 | |
 
 ## 3. 완료 조건 추적 (spec §22)
