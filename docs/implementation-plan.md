@@ -161,6 +161,15 @@ holoforge-ai-lab/
 | P4-5 | 평가 스크립트 | eval_gestures.py, eval_tool_calls.py, reports/ | 두 스크립트 실행 → 리포트 생성 | 완료 | eval_gestures(합성 36클립·사진 녹화 1클립) 리포트 생성, eval_tool_calls mock 100%·qwen3 기준 75%→도구 강제 후 94%(인자 50→83%, 미근거 19→0%), pytest 116 |
 | P4-6 | 결과 화면 + 문서 | /results, experiments.md, model-selection.md | 결과 화면에 지연·조립 통계 표시, README 완료 조건 표 | 완료 | 결과 화면: 지연 p50/p95·세션(시도 2·오류 MISSING_PARENT 1)·제스처 평가·도구 호출 개선 전후 표시, JSON 내보내기, pytest 117·vitest 100·build OK |
 
+### Phase 5 — MVP 이후 개선 (README 로드맵)
+
+목표: 실제 LLM 데모 품질(요청 인식·첫 응답 지연) 개선.
+
+| ID | 작업 | 산출물 | 스모크 테스트 | 상태 | 비고 |
+|---|---|---|---|---|---|
+| P5-1 | 시뮬레이션 요청 인식 (E-01 잔여) | 도구 설명·프롬프트 보강, experiments.md E-01 재측정 | qwen3:8b로 `eval_tool_calls.py --provider ollama` → `simulate` 케이스 통과 | 진행중 | |
+| P5-2 | LLM 워밍업 + keep_alive | 서버 시작 시 모델 예열, `OLLAMA_KEEP_ALIVE` | 서버 기동 직후 첫 튜터 질문 지연 측정(개선 전후) | 대기 | |
+
 ## 3. 완료 조건 추적 (spec §22)
 
 | # | 시나리오 | 단계 | 상태 |
