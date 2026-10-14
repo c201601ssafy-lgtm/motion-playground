@@ -13,10 +13,11 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
       try { screenshot = await chrome.tabs.captureVisibleTab(target.windowId, { format: 'jpeg', quality: 75 }); } catch { /* title card fallback */ }
     }
     const token = crypto.randomUUID();
+    const choices = (await chrome.tabs.query({ windowId: target.windowId })).filter(t => Number.isInteger(t.id) && /^https?:/.test(t.url ?? '')).map(t => ({ id: t.id, title: t.title || t.url }));
     const demo = await chrome.tabs.create({ url: 'about:blank' });
     const url = new URL(message.site); url.searchParams.set('extension', chrome.runtime.id); url.searchParams.set('session', token); url.hash = '/crumple';
     await chrome.storage.session.set({ [key(demo.id)]: { targetId: target.id, targetUrl: target.url,
-      title: target.title || '선택한 탭', screenshot, token, origin: url.origin, path: url.pathname, expires: Date.now() + 30 * 60 * 1000 } });
+      title: target.title || '선택한 탭', screenshot, choices, windowId: target.windowId, token, origin: url.origin, path: url.pathname, expires: Date.now() + 30 * 60 * 1000 } });
     await chrome.tabs.update(demo.id, { url: url.href });
     return { ok: true };
   })().then(respond, e => respond({ ok: false, error: e.message }));
@@ -25,14 +26,23 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
 
 chrome.runtime.onMessageExternal.addListener((message, sender, respond) => {
   (async () => {
-    if (!sender.tab?.id || !['LOAD', 'CLOSE'].includes(message?.type)) throw new Error('연결할 수 없습니다');
+    if (!sender.tab?.id || !['LOAD', 'SELECT', 'CLOSE'].includes(message?.type)) throw new Error('연결할 수 없습니다');
     const record = (await chrome.storage.session.get(key(sender.tab.id)))[key(sender.tab.id)];
     const source = new URL(sender.url);
     if (!record || record.expires < Date.now() || record.token !== message.token ||
       source.origin !== record.origin || source.pathname !== record.path || sender.frameId !== 0) throw new Error('연결이 만료되었습니다. 확장 프로그램에서 다시 선택해 주세요');
+    if (message.type === 'SELECT') {
+      if (!record.choices?.some(t => t.id === message.tabId)) throw new Error('선택 목록에 없는 탭입니다');
+      const selected = await chrome.tabs.get(message.tabId);
+      if (selected.windowId !== record.windowId || !/^https?:/.test(selected.url ?? '')) throw new Error('탭을 다시 선택해 주세요');
+      if (record.targetId !== selected.id || record.targetUrl !== selected.url) record.screenshot = null;
+      record.targetId = selected.id; record.targetUrl = selected.url; record.title = selected.title || '선택한 탭';
+      await chrome.storage.session.set({ [key(sender.tab.id)]: record });
+      return { ok: true, title: record.title, screenshot: record.screenshot };
+    }
+    if (message.type === 'LOAD') return { ok: true, title: record.title, screenshot: record.screenshot, choices: record.choices || [] };
     const target = await chrome.tabs.get(record.targetId);
     if (target.url !== record.targetUrl) throw new Error('선택한 탭의 주소가 바뀌었습니다. 다시 선택해 주세요');
-    if (message.type === 'LOAD') return { ok: true, title: record.title, screenshot: record.screenshot };
     // Consume the session before removing only its bound target tab.
     await chrome.storage.session.remove(key(sender.tab.id));
     await chrome.tabs.remove(record.targetId);

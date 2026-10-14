@@ -7,14 +7,17 @@ function setup() {
   let internal: Function, external: Function;
   const records: Record<string, any> = {};
   const removed: number[] = [];
-  const tabs: Record<number, any> = { 7: { id: 7, url: "https://example.com/", title: "선택한 문서", active: true, windowId: 1 } };
+  const tabs: Record<number, any> = {
+    7: { id: 7, url: "https://example.com/", title: "선택한 문서", active: true, windowId: 1 },
+    8: { id: 8, url: "https://example.com/second", title: "두 번째 문서", active: false, windowId: 1 },
+  };
   let demoUrl = "";
   const chrome = {
     runtime: { id: "extension-id", onMessage: { addListener: (f: Function) => { internal = f; } },
       onMessageExternal: { addListener: (f: Function) => { external = f; } } },
     storage: { session: { get: async (k: string) => ({ [k]: records[k] }),
       set: async (r: object) => Object.assign(records, r), remove: async (k: string) => { delete records[k]; } } },
-    tabs: { get: async (id: number) => { if (!tabs[id]) throw new Error("missing tab"); return tabs[id]; },
+    tabs: { query: async () => Object.values(tabs), get: async (id: number) => { if (!tabs[id]) throw new Error("missing tab"); return tabs[id]; },
       captureVisibleTab: async () => "data:image/jpeg;base64,test", create: async () => ({ id: 9 }),
       update: async (_id: number, data: { url: string }) => { demoUrl = data.url; },
       remove: async (id: number) => { removed.push(id); delete tabs[id]; }, onRemoved: { addListener: () => {} } },
@@ -22,7 +25,7 @@ function setup() {
   runInNewContext(code, { chrome, URL, Date, crypto: { randomUUID: () => "session-secret" } });
   const send = (f: Function, message: object, sender: object): Promise<any> => new Promise(resolve => f(message, sender, resolve));
   const start = () => send(internal, { type: "START", tabId: 7, capture: true, site: "http://localhost:5173/" }, { id: "extension-id" });
-  const request = (type: string, patch: object = {}, token = "session-secret") => send(external, { type, token },
+  const request = (type: string, patch: object = {}, token = "session-secret", tabId?: number) => send(external, { type, token, tabId },
     { tab: { id: 9 }, url: demoUrl, frameId: 0, ...patch });
   return { start, request, removed, tabs };
 }
@@ -48,5 +51,14 @@ describe("Chrome tab bridge", () => {
     const m = setup(); await m.start(); m.tabs[7].url = "https://example.com/another";
     expect((await m.request("CLOSE")).ok).toBe(false);
     expect(m.removed).toEqual([]);
+  });
+  it("rebinds closure to a selected listed tab and drops the previous screenshot", async () => {
+    const m = setup(); await m.start();
+    expect((await m.request("LOAD")).choices).toHaveLength(2);
+    expect((await m.request("SELECT", {}, "session-secret", 999)).ok).toBe(false);
+    const selected = await m.request("SELECT", {}, "session-secret", 8);
+    expect(selected.title).toBe("두 번째 문서"); expect(selected.screenshot).toBeNull();
+    expect((await m.request("CLOSE")).ok).toBe(true);
+    expect(m.removed).toEqual([8]); expect(m.tabs[7]).toBeDefined();
   });
 });
