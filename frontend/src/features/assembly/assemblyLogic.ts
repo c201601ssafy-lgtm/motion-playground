@@ -1,7 +1,7 @@
 // 조립 모드 보조 로직 (순수 함수). 판정은 하지 않는다 — 판정은 백엔드 AssemblyEngine만 한다.
 
 import type { PartPose } from "../../store/labStore";
-import type { AssemblyResult, ErrorType } from "../../types/assembly";
+import type { AssemblyResult, AssemblySnapshot, ErrorType } from "../../types/assembly";
 import type { MechanismModel, Part, Slot, Vec3 } from "../../types/model";
 
 /** 작업대(조립 전 부품 놓는 곳) 배치. 모델 좌표계. */
@@ -29,6 +29,19 @@ export interface NearestSlot {
   slot: Slot;
   distance: number;
   inRange: boolean;
+}
+
+/** Magnetic placement assist. The server still validates the resulting placement. */
+export function autoAssemblySlot(model: MechanismModel, partId: string, position: Vec3, snapshot: AssemblySnapshot | null): Slot | null {
+  if (!snapshot || snapshot.is_complete || !position.every(Number.isFinite)) return null;
+  const slot = model.slots.find(s => s.accepts_part_id === partId);
+  if (!slot || snapshot.placed[slot.slot_id]) return null;
+  const step = model.steps.find(s => s.slots.includes(slot.slot_id));
+  if (!step || step.step !== snapshot.current_step || !step.requires_steps.every(s => snapshot.completed_steps.includes(s))) return null;
+  if (slot.parent_part_id && !Object.values(snapshot.placed).includes(slot.parent_part_id)) return null;
+  const radius = Math.min(0.55, Math.max(0.32, slot.snap_radius * 1.6));
+  return Math.hypot(position[0] - slot.position[0], position[2] - slot.position[2]) <= radius &&
+    Math.abs(position[1] - slot.position[1]) <= Math.max(0.75, radius) ? slot : null;
 }
 
 /** 표시용: 가장 가까운 결합 지점 (판정 아님). */

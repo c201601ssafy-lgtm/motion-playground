@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.core.config import REPO_ROOT  # noqa: E402
 from app.gestures.pipeline import FilterName, replay  # noqa: E402
 
-LABELS = ["OPEN_PALM", "PINCH", "FIST", "NONE"]
+LABELS = ["OPEN_PALM", "POINT", "PINCH", "FIST", "NONE"]
 FILTERS: list[FilterName] = ["none", "ema", "one-euro"]
 
 

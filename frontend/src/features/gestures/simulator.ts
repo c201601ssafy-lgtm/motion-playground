@@ -29,7 +29,7 @@ function placedHand(pose: PoseName, x: number, y: number, roll = 0) {
   const lm = syntheticHand(POSES[pose], { scale: 0.18, roll });
   const ref = PINCH_POSES.has(pose)
     ? { x: (lm[LM.THUMB_TIP]!.x + lm[LM.INDEX_TIP]!.x) / 2, y: (lm[LM.THUMB_TIP]!.y + lm[LM.INDEX_TIP]!.y) / 2 }
-    : buildHandFrame(lm, "right", 1, 0).palm_center;
+    : pose === "POINT" ? lm[LM.INDEX_TIP]! : buildHandFrame(lm, "right", 1, 0).palm_center;
   return lm.map((p) => ({ x: p.x + x - ref.x, y: p.y + y - ref.y, z: p.z }));
 }
 
@@ -82,6 +82,8 @@ export const handSimulator = {
       dragging: s.draggingPartId,
       poses: s.poses,
       cursor: s.cursor,
+      cursors: s.handCursors,
+      interactions: s.interactions,
       lastCommand: s.lastCommand,
       gesture: t.gesture,
       exploded: s.exploded,

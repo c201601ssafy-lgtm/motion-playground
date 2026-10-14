@@ -16,7 +16,7 @@ CASES = [
 
 
 def test_cases_cover_all_gestures() -> None:
-    assert {c["expect"]["gesture"] for c in CASES} == {"NONE", "OPEN_PALM", "PINCH", "FIST"}
+    assert {c["expect"]["gesture"] for c in CASES} == {"NONE", "OPEN_PALM", "POINT", "PINCH", "FIST"}
 
 
 @pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])

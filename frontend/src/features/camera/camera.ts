@@ -11,7 +11,7 @@ const MESSAGES: Record<CameraErrorKind, string> = {
   denied: "카메라 권한이 거부되었습니다. 주소창의 카메라 아이콘에서 허용해 주세요.",
   "no-device": "사용할 수 있는 카메라가 없습니다.",
   "in-use": "다른 프로그램이 카메라를 사용 중입니다.",
-  insecure: "카메라는 https 또는 localhost에서만 사용할 수 있습니다.",
+  insecure: "공유 주소에서 카메라를 사용하려면 HTTPS로 접속해야 합니다. GitHub Pages 등 HTTPS로 배포된 주소를 이용해 주세요. 로컬 테스트는 localhost에서 가능합니다.",
   unsupported: "이 브라우저는 카메라를 지원하지 않습니다.",
   unknown: "카메라를 켜지 못했습니다.",
 };

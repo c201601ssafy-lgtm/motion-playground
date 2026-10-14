@@ -1,6 +1,7 @@
 import type { HandLandmarker } from "@mediapipe/tasks-vision";
 import { buildHandFrame } from "../gestures/features";
 import type { HandFrame } from "./types";
+import { HandStabilizer } from "./stabilizer";
 
 // 에셋 경로. 오프라인 시연이 필요하면 public/ 아래로 옮기고 이 값만 바꾼다.
 export const MEDIAPIPE_WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/wasm";
@@ -8,6 +9,7 @@ export const HAND_MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
 export interface FrameTiming {
+  demo?: boolean;
   /** 프레임이 화면에 표시될 예정 시각 (rVFC) 또는 루프 시작 시각 */
   captureAt: number;
   /** detectForVideo 소요 시간 ms */
@@ -37,6 +39,8 @@ export class HandTracker {
   private useRvfc = false;
   /** 직전 주 손의 손바닥 위치. 손이 둘일 때 같은 손을 계속 주 손으로 고른다 */
   private lastPrimary: { x: number; y: number } | null = null;
+  private lastPrimaryAt = -Infinity;
+  private readonly stabilizer = new HandStabilizer();
 
   private constructor(
     private readonly landmarker: HandLandmarker,
@@ -85,13 +89,18 @@ export class HandTracker {
         result.landmarks.forEach((lm, i) => {
           if (lm.length !== 21) return;
           const cat = result.handedness[i]?.[0];
-          // MediaPipe의 handedness는 거울 반전 전 기준이라, 셀피 화면에서는 좌우가 뒤집혀 보인다.
-          const label = cat?.categoryName?.toLowerCase() === "left" ? "right" : "left";
+          // CSS 반전은 미리보기에만 적용된다. 모델의 좌우 손 판정은 그대로 사용한다.
+          const label = cat?.categoryName?.toLowerCase() === "left" ? "left" : "right";
           hands.push(buildHandFrame(lm.map((p) => ({ x: p.x, y: p.y, z: p.z })), label, cat?.score ?? 0, t0, aspect));
         });
-        const frame = pickPrimary(hands, this.lastPrimary);
-        this.lastPrimary = frame ? { x: frame.palm_center.x, y: frame.palm_center.y } : null;
-        onFrame(frame, { captureAt: now, landmarkMs }, hands);
+        const stableHands = this.stabilizer.process(hands, t0, aspect);
+        if (t0 - this.lastPrimaryAt > 200) this.lastPrimary = null;
+        const frame = pickPrimary(stableHands, this.lastPrimary);
+        if (frame) {
+          this.lastPrimary = { x: frame.palm_center.x, y: frame.palm_center.y };
+          this.lastPrimaryAt = t0;
+        }
+        onFrame(frame, { captureAt: now, landmarkMs }, stableHands);
       }
       this.handle = useRvfc ? v.requestVideoFrameCallback!(tick) : requestAnimationFrame(tick);
     };
@@ -105,6 +114,9 @@ export class HandTracker {
     if (this.useRvfc) this.video?.cancelVideoFrameCallback?.(this.handle);
     else cancelAnimationFrame(this.handle);
     this.lastVideoTime = -1;
+    this.lastPrimary = null;
+    this.lastPrimaryAt = -Infinity;
+    this.stabilizer.reset();
   }
 
   close(): void {

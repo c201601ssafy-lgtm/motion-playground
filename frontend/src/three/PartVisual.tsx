@@ -33,6 +33,7 @@ function useGearGeometry(part: Part): THREE.BufferGeometry | null {
 interface Props {
   part: Part;
   highlighted?: boolean;
+  armed?: boolean;
   selected?: boolean;
   opacity?: number;
 }
@@ -46,14 +47,14 @@ interface Look {
   glbEmissive: string;
 }
 
-function look(part: Part, highlighted: boolean, selected: boolean, opacity: number): Look {
+function look(part: Part, highlighted: boolean, selected: boolean, opacity: number, armed: boolean): Look {
   const transparent = opacity < 1 || part.kind === "cover";
   return {
-    color: selected ? "#3fb950" : highlighted ? "#f0f6fc" : KIND_COLOR[part.kind],
+    color: selected ? "#3fb950" : armed ? "#d2a8ff" : highlighted ? "#f0f6fc" : KIND_COLOR[part.kind],
     transparent,
     opacity: part.kind === "cover" ? Math.min(opacity, 0.35) : opacity,
-    emissive: selected ? "#1a7f37" : "#000000",
-    glbEmissive: selected ? "#1a7f37" : highlighted ? "#30363d" : "#000000",
+    emissive: selected ? "#1a7f37" : armed ? "#6e40aa" : "#000000",
+    glbEmissive: selected ? "#1a7f37" : armed ? "#6e40aa" : highlighted ? "#30363d" : "#000000",
   };
 }
 
@@ -128,9 +129,9 @@ class AssetBoundary extends Component<{ fallback: ReactNode; url: string; childr
   }
 }
 
-export function PartVisual({ part, highlighted = false, selected = false, opacity = 1 }: Props) {
+export function PartVisual({ part, highlighted = false, armed = false, selected = false, opacity = 1 }: Props) {
   const url = useLabStore((s) => s.partAssets[part.part_id]);
-  const l = look(part, highlighted, selected, opacity);
+  const l = look(part, highlighted, selected, opacity, armed);
   const procedural = <ProceduralPart part={part} l={l} />;
   if (!url) return procedural;
   return (

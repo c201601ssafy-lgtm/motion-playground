@@ -74,3 +74,7 @@
   border: 1px solid #f85149;
   border-radius: 6px;
 }
+
+.compact { width: 180px; padding: 6px; gap: 5px; }
+.compact .preview { aspect-ratio: 16 / 9; }
+.compact .privacy { display: none; }

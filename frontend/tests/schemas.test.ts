@@ -22,7 +22,7 @@ describe("gesture-event.schema.json", () => {
     const p = new GesturePipeline();
     const events: GestureEvent[] = [];
     let t = 0;
-    for (const pose of ["OPEN_PALM", "PINCH", "FIST"] as const) {
+    for (const pose of ["OPEN_PALM", "POINT", "PINCH", "FIST"] as const) {
       for (let i = 0; i < 8; i++, t += 33) {
         events.push(...p.process(buildHandFrame(syntheticHand(POSES[pose]), "right", 0.9, t), t).events);
       }

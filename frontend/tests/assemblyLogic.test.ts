@@ -2,17 +2,42 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   ERROR_TITLE,
+  autoAssemblySlot,
   nearestSlot,
   poseAfterAttempt,
   resultToast,
   workbenchPose,
 } from "../src/features/assembly/assemblyLogic";
-import type { AssemblyResult, ErrorType } from "../src/types/assembly";
+import type { AssemblyResult, AssemblySnapshot, ErrorType } from "../src/types/assembly";
 import type { MechanismModel } from "../src/types/model";
 
 const MODEL: MechanismModel = JSON.parse(
   readFileSync(new URL("../public/models/gearbox.json", import.meta.url), "utf8"),
 );
+
+describe("automatic nearby assembly", () => {
+  const snapshot: AssemblySnapshot = { placed: {}, completed_steps: [], current_step: 1,
+    parts_placed: 0, parts_total: MODEL.parts.length, is_complete: false, last_error: null };
+  const base = MODEL.slots.find(s => s.accepts_part_id === "base-plate")!;
+  it("captures the correct part outside the previous snap radius and tolerates tabletop height", () => {
+    expect(autoAssemblySlot(MODEL, "base-plate", [base.position[0] + base.snap_radius * 1.4, base.position[1] + 0.2, base.position[2]], snapshot)).toBe(base);
+    expect(autoAssemblySlot(MODEL, "base-plate", [base.position[0] + 1, base.position[1], base.position[2]], snapshot)).toBeNull();
+    expect(autoAssemblySlot(MODEL, "base-plate", [base.position[0], base.position[1] + 2, base.position[2]], snapshot)).toBeNull();
+  });
+  it("requires a session, an empty matching slot, and the current assembly step", () => {
+    expect(autoAssemblySlot(MODEL, "base-plate", base.position, null)).toBeNull();
+    expect(autoAssemblySlot(MODEL, "base-plate", base.position, { ...snapshot, placed: { [base.slot_id]: "base-plate" } })).toBeNull();
+    expect(autoAssemblySlot(MODEL, "base-plate", base.position, { ...snapshot, current_step: 2 })).toBeNull();
+    expect(autoAssemblySlot(MODEL, "shaft-input", base.position, snapshot)).toBeNull();
+  });
+  it("requires parent parts and completed prerequisites", () => {
+    const gear = MODEL.slots.find(s => s.accepts_part_id === "gear-input-12t")!;
+    const ready = { ...snapshot, current_step: 3, completed_steps: [1, 2], placed: { "slot-shaft-a": "shaft-input" } };
+    expect(autoAssemblySlot(MODEL, "gear-input-12t", gear.position, ready)).toBe(gear);
+    expect(autoAssemblySlot(MODEL, "gear-input-12t", gear.position, { ...ready, placed: {} })).toBeNull();
+    expect(autoAssemblySlot(MODEL, "gear-input-12t", gear.position, { ...ready, completed_steps: [1] })).toBeNull();
+  });
+});
 
 const result = (patch: Partial<AssemblyResult>): AssemblyResult => ({
   is_valid: false,

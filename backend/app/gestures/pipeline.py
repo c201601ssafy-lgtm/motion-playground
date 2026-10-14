@@ -144,6 +144,8 @@ class StateMachine:
 
 
 def control_point(lm: list[Point], f: HandFeatures, gesture: GestureType) -> Point:
+    if gesture == "POINT":
+        return lm[INDEX_TIP]
     if gesture == "PINCH":
         a, b = lm[THUMB_TIP], lm[INDEX_TIP]
         return tuple((x + y) / 2 for x, y in zip(a, b, strict=True))  # type: ignore[return-value]
@@ -185,7 +187,7 @@ def replay(
         evs = sm.update(raw, float(fr.get("handedness_score", 1.0)), t)
         events = []
         for phase, g in evs:
-            k = "pinch" if g == "PINCH" else "palm"
+            k = "pinch" if g == "PINCH" else "point" if g == "POINT" else "palm"
             if k != kind:
                 flt.reset()
                 kind = k

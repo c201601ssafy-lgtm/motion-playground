@@ -14,10 +14,15 @@ export class TwoHandCommandSource implements CommandSource {
   constructor(
     private readonly subscribe: Subscribe,
     private readonly now: () => number = () => performance.now(),
+    private readonly isBusy: () => boolean = () => false,
   ) {}
 
   start(bus: CommandBusLike): void {
     this.unsub = this.subscribe((_frame, _timing, hands) => {
+      if (this.isBusy()) {
+        this.detector.reset();
+        return;
+      }
       const command = this.detector.update(hands, this.now());
       if (command) bus.publish(command, this.name);
     });

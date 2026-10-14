@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { HandCursor } from "../features/gestures/gestureCommandSource";
+import type { HandId } from "../features/gestures/types";
 import type { Mode } from "../modes";
 import type { MechanismModel, Vec3 } from "../types/model";
 
@@ -25,6 +26,16 @@ export interface FallRequest {
 }
 
 export interface LabState {
+  interactionGuides: Record<string, LabState["guide"]>;
+  setInteractionGuide: (owner: string, guide: LabState["guide"]) => void;
+  pendingParts: string[];
+  setPartPending: (id: string, pending: boolean) => void;
+  interactions: Record<string, { hovered: string | null; selected: string | null; dragging: string | null; armed: boolean }>;
+  setInteraction: (owner: string, patch: Partial<LabState["interactions"][string]>) => void;
+  handCursors: Partial<Record<HandId, HandCursor | null>>;
+  setHandCursor: (hand: HandId, cursor: HandCursor | null) => void;
+  handRotationAllowed: boolean;
+  setHandRotationAllowed: (allowed: boolean) => void;
   mode: Mode;
   setMode: (mode: Mode) => void;
   model: MechanismModel | null;
@@ -81,6 +92,30 @@ export interface LabState {
 }
 
 export const useLabStore = create<LabState>((set) => ({
+  interactionGuides: {},
+  setInteractionGuide: (owner, value) => set((s) => {
+    const interactionGuides = { ...s.interactionGuides, [owner]: value };
+    return { interactionGuides, guide: Object.values(interactionGuides).find(Boolean) ?? null };
+  }),
+  pendingParts: [],
+  setPartPending: (id, pending) => set((s) => ({ pendingParts: pending ? [...new Set([...s.pendingParts, id])] : s.pendingParts.filter((p) => p !== id) })),
+  interactions: {},
+  setInteraction: (owner, patch) => set((s) => {
+    const interactions = { ...s.interactions, [owner]: { hovered: null, selected: null, dragging: null, armed: false, ...s.interactions[owner], ...patch } };
+    const all = Object.values(interactions);
+    return { interactions,
+      hoveredPartId: all.find((v) => v.hovered)?.hovered ?? null,
+      selectedPartId: all.find((v) => v.selected)?.selected ?? null,
+      draggingPartId: all.find((v) => v.dragging)?.dragging ?? null,
+    };
+  }),
+  handCursors: {},
+  setHandCursor: (hand, cursor) => set((s) => {
+    const handCursors = { ...s.handCursors, [hand]: cursor };
+    return { handCursors, cursor: Object.values(handCursors).find(Boolean) ?? null };
+  }),
+  handRotationAllowed: true,
+  setHandRotationAllowed: (handRotationAllowed) => set({ handRotationAllowed }),
   mode: "lab",
   setMode: (mode) => set({ mode }),
   model: null,

@@ -1,0 +1,29 @@
+.layout { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 300px; gap: 24px; padding: 24px; overflow: auto; background: radial-gradient(ellipse at 35% 30%, #142a49, #080f1a 70%); color: #e2e8f0; }
+.stage { display: flex; flex-direction: column; align-items: center; padding-bottom: 220px; }
+.heading { text-align: center; }
+.heading span { color: #60a5fa; font-size: 11px; letter-spacing: 4px; }
+.heading h2 { font-size: 30px; margin: 10px 0; }
+.heading p, .note { color: #94a3b8; font-size: 13px; line-height: 1.7; }
+.wheelWrap { position: relative; width: min(320px, 70vw); margin: 18px 0 8px; }
+.wheel { width: 100%; display: block; }
+.angle { position: absolute; left: 50%; top: 67%; transform: translateX(-50%); color: #94a3b8; font-variant-numeric: tabular-nums; }
+.output { width: min(400px, 90%); display: flex; align-items: center; gap: 12px; color: #94a3b8; font-size: 12px; }
+.steeringBar { position: relative; flex: 1; height: 6px; background: #263850; border-radius: 8px; }
+.steeringBar:after { content: ''; position: absolute; left: 50%; top: -4px; height: 14px; width: 1px; background: #61758e; }
+.steeringBar i { position: absolute; top: -4px; width: 14px; height: 14px; border-radius: 50%; background: #60a5fa; transform: translateX(-50%); }
+.readouts { display: flex; flex-wrap: wrap; justify-content: center; gap: 26px; margin-top: 24px; }
+.readouts div { display: grid; gap: 6px; text-align: center; min-width: 90px; }
+.readouts small { color: #94a3b8; font-size: 11px; }
+.readouts strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+.message { text-align: center; font-size: 13px; color: #bfdbfe; line-height: 1.6; }
+.panel { align-self: start; padding: 16px; border: 1px solid #2b3d55; border-radius: 14px; background: #101e30cc; font-size: 12px; line-height: 1.6; }
+.panel h3 { margin-top: 0; }
+.panel button { width: 100%; border: 1px solid #60a5fa; border-radius: 8px; background: #1d4e83; color: #fff; padding: 10px; cursor: pointer; }
+.panel button:disabled { opacity: .4; cursor: default; }
+.panel progress { width: 100%; margin-top: 10px; }
+.rules { margin-top: 14px; }
+.rules p { margin: 4px 0 14px; color: #b8c5d6; }
+.preview { width: 100%; height: 100px; background: #091321; border-radius: 8px; }
+.metrics { display: flex; justify-content: space-between; font-size: 11px; color: #93c5fd; }
+.note { font-size: 11px; }
+@media(max-width: 850px) { .layout { grid-template-columns: 1fr; } .stage { padding-bottom: 0; } .panel { margin-bottom: 260px; } }

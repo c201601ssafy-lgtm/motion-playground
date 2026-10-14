@@ -31,8 +31,8 @@ function Bar({ value, max, label }: { value: number; max: number; label: string 
 
 export function AssemblyPanel() {
   const model = useLabStore((s) => s.model);
-  const guide = useLabStore((s) => s.guide);
-  const dragging = useLabStore((s) => s.draggingPartId);
+  const guides = useLabStore((s) => s.interactionGuides);
+  const interactions = useLabStore((s) => s.interactions);
   const { snapshot, error, busy, attempts, errors, startedAt, completedAt, lastResult } = useAssemblyStore();
   const canAskWhy = !!lastResult && !lastResult.is_valid && lastResult.error_type !== "TOO_FAR";
   if (!model) return null;
@@ -57,12 +57,13 @@ export function AssemblyPanel() {
             ? `${current.step}단계: ${current.title}`
             : "세션 준비 중…"}
       </div>
-      {dragging && guide && (
-        <div data-testid="snap-guide" style={{ fontSize: 12, color: guide.inRange ? "#3fb950" : "#8b949e" }}>
+      {Object.entries(guides).map(([owner, guide]) => interactions[owner]?.dragging && guide && (
+        <div key={owner} data-testid="snap-guide" style={{ fontSize: 12, color: guide.inRange ? "#3fb950" : "#8b949e" }}>
+          {owner === "left" ? "왼손 · " : owner === "right" ? "오른손 · " : ""}
           가장 가까운 결합 지점 {guide.slotId} · 거리 {guide.distance.toFixed(2)}
-          {guide.inRange ? " (놓으면 판정)" : ""}
+          {guide.inRange ? " (현재 단계의 맞는 부품이면 자동 결합)" : ""}
         </div>
-      )}
+      ))}
       {canAskWhy && (
         <button type="button" onClick={() => askWhyWrong(WHY_WRONG_QUESTION)} data-testid="ask-why">
           🤖 왜 틀렸어? (AI 튜터)
@@ -83,7 +84,7 @@ export function AssemblyPanel() {
         </button>
       </div>
       <p style={{ margin: 0, fontSize: 12, color: "#8b949e" }}>
-        부품을 집어 결합 지점 근처에 놓으세요. 잡은 채 마우스 휠 또는 [ ] 키로 부품을 돌릴 수 있습니다.
+        현재 단계의 부품을 자기 조립 위치 근처로 가져가면 손을 놓지 않아도 자동으로 정렬·결합됩니다. 잡은 채 마우스 휠 또는 [ ] 키로 부품을 돌릴 수 있습니다.
       </p>
     </div>
   );

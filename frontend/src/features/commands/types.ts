@@ -1,5 +1,6 @@
 // D-004: 입력 장치와 3D 조작 사이의 명령 계층.
 import type { Mode } from "../../modes";
+import type { HandId } from "../gestures/types";
 
 // 화면 좌표는 캔버스 기준 0..1 정규화 (x: 왼→오, y: 위→아래).
 
@@ -8,9 +9,10 @@ export interface ScreenPoint {
   y: number;
 }
 
-export type Command =
+export type Command = (
   | { type: "HOVER"; screen: ScreenPoint }
-  | { type: "GRAB_PART"; screen: ScreenPoint }
+  | { type: "LOCK_SELECTION"; locked: boolean }
+  | { type: "GRAB_PART"; screen: ScreenPoint; useHovered?: boolean }
   | { type: "MOVE_PART"; screen: ScreenPoint }
   | { type: "RELEASE_PART"; screen: ScreenPoint }
   | { type: "ROTATE_MODEL"; dYaw: number; dPitch: number }
@@ -19,7 +21,8 @@ export type Command =
   | { type: "ASSEMBLE_ALL" }
   | { type: "RESET_STEP" }
   | { type: "ROTATE_PART"; dYawDeg: number }
-  | { type: "SET_MODE"; mode: Mode };
+  | { type: "SET_MODE"; mode: Mode }
+) & { hand?: HandId };
 
 export type CommandType = Command["type"];
 

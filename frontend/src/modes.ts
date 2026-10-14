@@ -1,6 +1,6 @@
 // 화면 모드 (spec §15). 해시 라우트(#/assemble 등)가 단일 진실 원천이다.
 
-export type Mode = "lab" | "disassemble" | "assemble" | "operate" | "tutor" | "results" | "record";
+export type Mode = "lab" | "disassemble" | "assemble" | "operate" | "tutor" | "results" | "record" | "racing" | "motionlab" | "crumple";
 
 export interface ModeInfo {
   id: Mode;
@@ -17,6 +17,9 @@ export const MODES: ModeInfo[] = [
   { id: "tutor", label: "AI 튜터", key: "5" },
   { id: "results", label: "실험 결과", key: "6" },
   { id: "record", label: "데이터 녹화", key: "7" },
+  { id: "racing", label: "핸들 테스트", key: "8" },
+  { id: "motionlab", label: "게임 모션", key: "9" },
+  { id: "crumple", label: "창 구기기", key: "0" },
 ];
 
 const IDS = new Set<string>(MODES.map((m) => m.id));

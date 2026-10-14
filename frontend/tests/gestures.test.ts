@@ -24,7 +24,7 @@ const CASES: Case[] = readFileSync(new URL("../../evals/gesture-cases.jsonl", im
 describe("rule classifier (evals/gesture-cases.jsonl)", () => {
   it("has cases for every gesture", () => {
     const labels = new Set(CASES.map((c) => c.expect.gesture));
-    expect([...labels].sort()).toEqual(["FIST", "NONE", "OPEN_PALM", "PINCH"]);
+    expect([...labels].sort()).toEqual(["FIST", "NONE", "OPEN_PALM", "PINCH", "POINT"]);
   });
 
   it.each(CASES.map((c) => [c.id, c] as const))("%s", (_id, c) => {
@@ -109,6 +109,14 @@ describe("GestureStateMachine", () => {
     expect(ev.map((e) => e.phase)).toEqual(["hold"]);
   });
 
+  it("freezes commands on unreliable frames and ends after sustained low confidence", () => {
+    const sm = new GestureStateMachine();
+    run(sm, Array(3).fill(c("PINCH")));
+    expect(run(sm, [c("PINCH", 0.2), c("PINCH", NaN)])).toEqual([]);
+    expect(run(sm, [c("PINCH")]).map((e) => e.phase)).toEqual(["hold"]);
+    expect(run(sm, Array(5).fill(c("PINCH", 0.2))).map((e) => e.phase)).toEqual(["end"]);
+  });
+
   it("reports delta between consecutive events", () => {
     const sm = new GestureStateMachine();
     let x = 0.5;
@@ -149,6 +157,16 @@ describe("GesturePipeline", () => {
   const frame = (pose: keyof typeof POSES, t: number, x = 0.5) =>
     buildHandFrame(syntheticHand(POSES[pose], { wrist: { x, y: 0.78 } }), "right", 0.95, t);
 
+  it("recognizes pointing and uses the index fingertip as the cursor", () => {
+    const p = new GesturePipeline("none");
+    for (let i = 0; i < 2; i++) expect(p.process(frame("POINT", i * 33), i * 33).events).toEqual([]);
+    const f = frame("POINT", 66);
+    const result = p.process(f, 66);
+    expect(result.events[0]?.type).toBe("POINT");
+    expect(result.events[0]?.position).toEqual(f.landmarks[8]);
+    expect(result.events[0]?.phase).toBe("start");
+  });
+
   it("turns a pinch sequence into start/hold events at the fingertip midpoint", () => {
     const p = new GesturePipeline("none");
     const events: GestureEvent[] = [];
@@ -167,5 +185,14 @@ describe("GesturePipeline", () => {
     const ends = [];
     for (let i = 4; i < 12; i++) ends.push(...p.process(null, i * 33).events);
     expect(ends.map((e) => `${e.type}:${e.phase}`)).toEqual(["FIST:end"]);
+  });
+
+  it("keeps position smoothing through a brief tracking dropout", () => {
+    const p = new GesturePipeline("ema");
+    for (let i = 0; i < 4; i++) p.process(frame("OPEN_PALM", i * 33), i * 33);
+    p.process(null, 132);
+    const resumed = p.process(frame("OPEN_PALM", 165, 0.6), 165).events;
+    expect(resumed[0]?.phase).toBe("hold");
+    expect(resumed[0]?.delta.x).toBeCloseTo(0.035);
   });
 });

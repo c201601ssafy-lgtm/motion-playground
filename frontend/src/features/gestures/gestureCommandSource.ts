@@ -1,7 +1,7 @@
 // GestureEvent → Command (D-004). 비전 코드는 화면 좌표까지만 만든다. 대상 부품은 3D 계층이 정한다.
 
 import type { CommandBusLike, CommandSource, ScreenPoint } from "../commands/types";
-import type { GestureEvent } from "./types";
+import type { GestureEvent, HandId } from "./types";
 
 export const GESTURE_MAPPING = {
   /** 카메라 중앙 영역만으로 화면 전체를 가리킬 수 있도록 확대 */
@@ -28,6 +28,7 @@ export function toScreen(p: { x: number; y: number }, gain = GESTURE_MAPPING.scr
 export interface HandCursor {
   screen: ScreenPoint;
   gesture: GestureEvent["type"];
+  selectionLocked?: boolean;
 }
 
 export class GestureCommandSource implements CommandSource {
@@ -37,26 +38,61 @@ export class GestureCommandSource implements CommandSource {
   private pendingRelease: ScreenPoint | null = null;
   /** 집기 중 손 기울기 추적: 마지막 각도와 아직 한 칸이 안 된 누적량 */
   private roll: { last: number; acc: number } | null = null;
+  private target: { screen: ScreenPoint; at: number } | null = null;
+  private pinchOffset: ScreenPoint = { x: 0, y: 0 };
+  private selectionLocked = false;
 
   constructor(
     private readonly subscribe: Subscribe,
     private readonly onCursor: (cursor: HandCursor | null) => void = () => {},
+    private readonly hand?: HandId,
   ) {}
 
-  start(bus: CommandBusLike): void {
+  start(sink: CommandBusLike): void {
+    const bus: CommandBusLike = {
+      publish: (command, source) => sink.publish(this.hand ? { ...command, hand: this.hand } : command, source),
+    };
+    const setLock = (locked: boolean) => {
+      if (this.selectionLocked === locked) return;
+      this.selectionLocked = locked;
+      bus.publish({ type: "LOCK_SELECTION", locked }, this.name);
+    };
     this.unsub = this.subscribe((e) => {
-      const screen = toScreen(e.position);
-      this.onCursor(e.phase === "end" ? null : { screen, gesture: e.type });
+      if (this.hand && e.hand !== this.hand) return;
+      const rawScreen = toScreen(e.position);
+      const useHovered = e.type === "PINCH" && e.phase === "start" && !!this.target && e.timestamp - this.target.at <= 350;
+      if (e.type === "PINCH" && e.phase === "start") {
+        const target = this.target && e.timestamp - this.target.at <= 350 ? this.target.screen : rawScreen;
+        this.pinchOffset = { x: target.x - rawScreen.x, y: target.y - rawScreen.y };
+        this.target = null;
+      }
+      const screen = e.type === "PINCH"
+        ? { x: Math.max(0, Math.min(1, rawScreen.x + this.pinchOffset.x)), y: Math.max(0, Math.min(1, rawScreen.y + this.pinchOffset.y)) }
+        : e.type === "POINT" && e.selectionLocked && this.target ? this.target.screen : rawScreen;
+      setLock(e.type === "POINT" && e.phase !== "end" && !!e.selectionLocked);
+      this.onCursor(e.phase === "end" ? null : { screen, gesture: e.type, ...(this.selectionLocked ? { selectionLocked: true } : {}) });
       switch (e.type) {
+        case "POINT":
+          if (e.phase !== "end") {
+            this.target = { screen, at: e.timestamp };
+            if (!this.selectionLocked) bus.publish({ type: "HOVER", screen }, this.name);
+          }
+          break;
         case "PINCH":
           if (e.phase === "start") {
             this.roll = e.roll === undefined ? null : { last: e.roll, acc: 0 };
-            bus.publish({ type: "GRAB_PART", screen }, this.name);
+            bus.publish({ type: "GRAB_PART", screen, ...(useHovered ? { useHovered: true } : {}) }, this.name);
           } else if (e.phase === "hold") {
             bus.publish({ type: "MOVE_PART", screen }, this.name);
             this.rotateByRoll(bus, e.roll);
           } else {
             this.roll = null;
+            if (e.trackingLost) {
+              this.pendingRelease = null;
+              this.target = null;
+              bus.publish({ type: "CANCEL" }, this.name);
+              break;
+            }
             // 상태 머신은 전환 시 end와 start를 같은 update에서 연달아 낸다.
             // 바로 뒤에 FIST:start가 오면 취소로 바꾸고, 아니면 다음 마이크로태스크에 놓는다.
             this.pendingRelease = screen;
@@ -68,6 +104,7 @@ export class GestureCommandSource implements CommandSource {
           }
           break;
         case "OPEN_PALM":
+          this.target = null;
           if (e.phase === "hold" && (e.delta.x !== 0 || e.delta.y !== 0)) {
             const k = GESTURE_MAPPING.rotateSensitivity;
             // 거울 화면: 손을 오른쪽으로 움직이면 이미지 x는 감소 → 모델은 오른쪽(+yaw)으로
@@ -76,6 +113,7 @@ export class GestureCommandSource implements CommandSource {
           if (e.phase !== "end") bus.publish({ type: "HOVER", screen }, this.name);
           break;
         case "FIST":
+          this.target = null;
           if (e.phase === "start") {
             this.pendingRelease = null;
             bus.publish({ type: "CANCEL" }, this.name);
@@ -102,6 +140,11 @@ export class GestureCommandSource implements CommandSource {
   }
 
   stop(): void {
+    this.selectionLocked = false;
+    this.target = null;
+    this.pendingRelease = null;
+    this.roll = null;
+    this.pinchOffset = { x: 0, y: 0 };
     this.unsub?.();
     this.unsub = null;
     this.onCursor(null);

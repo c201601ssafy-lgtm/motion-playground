@@ -23,7 +23,7 @@ from app.core.config import REPO_ROOT  # noqa: E402
 from app.gestures.features import WRIST, extract, hand_size  # noqa: E402
 from app.gestures.rule_classifier import classify  # noqa: E402
 
-LABELS = ["OPEN_PALM", "PINCH", "FIST", "NONE"]
+LABELS = ["OPEN_PALM", "POINT", "PINCH", "FIST", "NONE"]
 FINGERS = ["thumb", "index", "middle", "ring", "pinky"]
 FOLDED = ["index", "middle", "ring", "pinky"]
 

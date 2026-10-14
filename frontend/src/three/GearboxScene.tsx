@@ -2,7 +2,7 @@ import { Grid } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { nearestSlot } from "../features/assembly/assemblyLogic";
+import { autoAssemblySlot, nearestSlot } from "../features/assembly/assemblyLogic";
 import { FALL_HZ, type FallFrame, hashSeed, simulateFall } from "../features/assembly/fallEffect";
 import { commandBus } from "../features/commands/commandBus";
 import { MechanismOverlay } from "../features/simulation/MechanismOverlay";
@@ -12,6 +12,8 @@ import { type FallRequest, type PartPose, useLabStore } from "../store/labStore"
 import type { Part, Slot, Vec3 } from "../types/model";
 import { PartVisual } from "./PartVisual";
 import { registerSceneProbe } from "./sceneProbe";
+import { DragSessions } from "./dragSessions";
+import { rebaseDragAfterRotation } from "./dragRotation";
 
 const COVER_IDS = new Set(["top-cover"]);
 export const MODEL_CENTER: Vec3 = [1.2, 0.3, 0];
@@ -43,6 +45,7 @@ interface PartNodeProps {
   exploded: boolean;
   dragging: boolean;
   highlighted: boolean;
+  armed: boolean;
   selected: boolean;
   dimmed: boolean;
   /** 회전축(y) 기준 각속도 rad/s (작동 모드) */
@@ -70,7 +73,7 @@ function localBox(root: THREE.Object3D): THREE.Box3 {
  * 부품 하나. 자세(pose)가 있으면 그 자리, 없으면 슬롯 위치 + 분해 오프셋.
  * 잡고 있을 때는 즉시 따라가고, 그 외에는 목표로 부드럽게 이동한다(스냅·복귀 애니메이션).
  */
-function PartNode({ part, slot, pose, exploded, dragging, highlighted, selected, dimmed, spin = 0, fall }: PartNodeProps) {
+function PartNode({ part, slot, pose, exploded, dragging, highlighted, armed, selected, dimmed, spin = 0, fall }: PartNodeProps) {
   const root = useRef<THREE.Group>(null);
   const spinner = useRef<THREE.Group>(null);
   const t = useRef(exploded ? 1 : 0);
@@ -155,18 +158,18 @@ function PartNode({ part, slot, pose, exploded, dragging, highlighted, selected,
   return (
     <group ref={root} userData={{ partRoot: true, partId: part.part_id }}>
       <group ref={spinner}>
-        <PartVisual part={part} highlighted={highlighted} selected={selected} opacity={dimmed ? 0.18 : 1} />
+        <PartVisual part={part} highlighted={highlighted} armed={armed} selected={selected} opacity={dimmed ? 0.18 : 1} />
       </group>
     </group>
   );
 }
 
 /** 드래그 중인 부품의 가장 가까운 빈 결합 지점에 반투명 고스트를 보여준다 (표시용, 판정 아님). */
-function SlotGhost() {
+function SlotGhost({ owner }: { owner: string }) {
   const model = useLabStore((s) => s.model);
   const mode = useLabStore((s) => s.mode);
-  const dragging = useLabStore((s) => s.draggingPartId);
-  const pose = useLabStore((s) => (s.draggingPartId ? s.poses[s.draggingPartId] : undefined));
+  const dragging = useLabStore((s) => s.interactions[owner]?.dragging ?? null);
+  const pose = useLabStore((s) => dragging ? s.poses[dragging] : undefined);
   const placed = useAssemblyStore((s) => s.snapshot?.placed);
   const near = model && dragging && pose && mode === "assemble" ? nearestSlot(model, pose.position, placed ?? {}) : null;
   const slotId = near?.slot.slot_id;
@@ -174,10 +177,10 @@ function SlotGhost() {
   const inRange = near?.inRange;
 
   useEffect(() => {
-    useLabStore
-      .getState()
-      .setGuide(slotId !== undefined ? { slotId, distance: distance ?? 0, inRange: !!inRange } : null);
-  }, [slotId, distance, inRange]);
+    useLabStore.getState().setInteractionGuide(owner,
+      slotId !== undefined ? { slotId, distance: distance ?? 0, inRange: !!inRange } : null);
+    return () => useLabStore.getState().setInteractionGuide(owner, null);
+  }, [owner, slotId, distance, inRange]);
 
   if (!near || !model) return null;
   const ghostPart = model.parts.find((p) => p.part_id === dragging);
@@ -221,7 +224,7 @@ function tabletopHeight(local: THREE.Vector3, restY: number): number {
 
 function SceneContent() {
   const modelGroup = useRef<THREE.Group>(null);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
   const model = useLabStore((s) => s.model);
   const mode = useLabStore((s) => s.mode);
@@ -230,6 +233,7 @@ function SceneContent() {
   const hovered = useLabStore((s) => s.hoveredPartId);
   const selected = useLabStore((s) => s.selectedPartId);
   const dragging = useLabStore((s) => s.draggingPartId);
+  const interactions = useLabStore((s) => s.interactions);
   const poses = useLabStore((s) => s.poses);
   const hidden = useLabStore((s) => s.hiddenParts);
   const exploded = useLabStore((s) => s.exploded);
@@ -250,7 +254,8 @@ function SceneContent() {
     const pick = (screen: ScreenPoint, skipLocked = false): Hit | null => {
       if (!modelGroup.current) return null;
       setRay(screen);
-      const locked = new Set(skipLocked ? useLabStore.getState().lockedParts : []);
+      const state = useLabStore.getState();
+      const locked = new Set(skipLocked ? [...state.lockedParts, ...state.pendingParts] : []);
       const hits = ray
         .intersectObjects(modelGroup.current.children, true)
         .map((h) => ({ partId: h.object.userData.partId as string | undefined, point: h.point, object: h.object }))
@@ -259,15 +264,36 @@ function SceneContent() {
       return hits.find((h) => !COVER_IDS.has(h.partId)) ?? hits[0] ?? null;
     };
 
-    const drag = {
+    const createDrag = () => ({
       plane: new THREE.Plane(),
       offset: new THREE.Vector3(),
       root: null as THREE.Object3D | null,
       partId: null as string | null,
       startPose: null as PartPose | null,
       orbitLast: null as ScreenPoint | null,
+      screen: null as ScreenPoint | null,
       /** 조립 모드: 수평(작업대) 평면 위에서 끈다 (D-015) */
       tabletop: false,
+    });
+    type Drag = ReturnType<typeof createDrag>;
+    const drags = new DragSessions(createDrag);
+    const rotateModel = (dYaw: number, dPitch: number) => {
+      useLabStore.getState().rotate(dYaw, dPitch);
+      const group = modelGroup.current;
+      if (!group?.parent) return;
+      const view = useLabStore.getState();
+      // Apply the new transform before processing another hand's move in the same video frame.
+      group.parent.rotation.set(view.pitch, view.yaw, 0);
+      for (const session of drags.values()) {
+        if (!session.partId || !session.root) continue;
+        const pose = view.poses[session.partId];
+        if (pose) {
+          session.root.position.set(...pose.position);
+          session.root.rotation.set(0, THREE.MathUtils.degToRad(pose.yaw), 0);
+        }
+      }
+      group.updateWorldMatrix(true, true);
+      for (const session of drags.values()) if (session.partId) rebaseDragAfterRotation(session, group, camera);
     };
 
     const currentPose = (partId: string, root: THREE.Object3D): PartPose => {
@@ -277,32 +303,60 @@ function SceneContent() {
       );
     };
 
-    const endDrag = () => {
+    const endDrag = (owner: string, drag: Drag) => {
       drag.partId = null;
       drag.root = null;
-      useLabStore.getState().setDragging(null);
+      drag.screen = null;
+      useLabStore.getState().setInteraction(owner, { dragging: null });
     };
 
-    return commandBus.subscribe(({ command }) => {
+    const gestureHovers = new Map<string, Hit | null>();
+    const pickGesture = (screen: ScreenPoint): Hit | null => {
+      const direct = pick(screen, true);
+      if (direct) return direct;
+      // 작은 부품도 겨냥할 수 있도록 화면에서 10px 안쪽만 보조한다.
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        const hit = pick({ x: screen.x + dx! * 10 / size.width, y: screen.y + dy! * 10 / size.height }, true);
+        if (hit) return hit;
+      }
+      return null;
+    };
+
+    const unsubscribe = commandBus.subscribe(({ command, source }) => {
       const store = useLabStore.getState();
+      const owner = command.hand ?? "pointer";
+      const drag = drags.get(owner);
       switch (command.type) {
+        case "LOCK_SELECTION":
+          store.setInteraction(owner, { armed: command.locked && !!gestureHovers.get(owner) });
+          break;
         case "HOVER":
-          store.setHovered(pick(command.screen)?.partId ?? null);
+          if (store.interactions[owner]?.armed) break;
+          if (source === "gesture") {
+            const hit = pickGesture(command.screen);
+            gestureHovers.set(owner, hit);
+            store.setInteraction(owner, { hovered: hit?.partId ?? null });
+          } else store.setInteraction(owner, { hovered: pick(command.screen)?.partId ?? null });
           break;
 
         case "GRAB_PART": {
-          const hit = pick(command.screen, true);
+          if (drag.partId) break;
+          const cached = command.useHovered ? gestureHovers.get(owner) : null;
+          const hit = command.useHovered
+            ? cached && !store.lockedParts.includes(cached.partId) && !store.pendingParts.includes(cached.partId) && !store.hiddenParts.includes(cached.partId) ? cached : null
+            : pick(command.screen, true);
           const root = findPartRoot(hit?.object ?? null);
           if (!hit || !root || store.mode === "operate") {
+            if (source === "gesture") break;
             // 빈 공간(또는 잠긴 부품)을 잡으면 모델 회전
-            store.setSelected(pick(command.screen)?.partId ?? null);
+            store.setInteraction(owner, { selected: pick(command.screen)?.partId ?? null });
             drag.orbitLast = command.screen;
             break;
           }
-          store.setSelected(hit.partId);
-          store.setDragging(hit.partId);
-          drag.partId = hit.partId;
+          if (!drags.claim(owner, hit.partId)) break;
+          store.setInteraction(owner, { selected: hit.partId, dragging: hit.partId });
           drag.root = root;
+          drag.screen = command.screen;
           drag.startPose = currentPose(hit.partId, root);
           // 손 깊이(z)는 쓰지 않는다 (D-004). 조립 모드는 수평 평면, 그 외는 카메라를 향한 평면 (D-015)
           drag.tabletop = store.mode === "assemble" && !!modelGroup.current;
@@ -310,13 +364,15 @@ function SceneContent() {
             ? new THREE.Vector3(0, 1, 0).transformDirection(modelGroup.current!.matrixWorld)
             : camera.getWorldDirection(new THREE.Vector3()).negate();
           drag.plane.setFromNormalAndCoplanarPoint(normal, hit.point);
-          drag.offset.copy(root.getWorldPosition(new THREE.Vector3())).sub(hit.point);
+          setRay(command.screen);
+          const anchor = ray.ray.intersectPlane(drag.plane, new THREE.Vector3()) ?? hit.point;
+          drag.offset.copy(root.getWorldPosition(new THREE.Vector3())).sub(anchor);
           break;
         }
 
         case "MOVE_PART": {
           if (drag.orbitLast) {
-            store.rotate((command.screen.x - drag.orbitLast.x) * Math.PI, (command.screen.y - drag.orbitLast.y) * Math.PI);
+            rotateModel((command.screen.x - drag.orbitLast.x) * Math.PI, (command.screen.y - drag.orbitLast.y) * Math.PI);
             drag.orbitLast = command.screen;
             break;
           }
@@ -324,10 +380,20 @@ function SceneContent() {
           setRay(command.screen);
           const p = ray.ray.intersectPlane(drag.plane, new THREE.Vector3());
           if (!p) break;
+          drag.screen = command.screen;
           const local = modelGroup.current.worldToLocal(p.add(drag.offset));
           const prev = currentPose(drag.partId, drag.root);
           if (drag.tabletop && drag.startPose) local.y = tabletopHeight(local, drag.startPose.position[1]);
-          store.setPose(drag.partId, { position: local.toArray() as Vec3, yaw: prev.yaw });
+          const pose = { position: local.toArray() as Vec3, yaw: prev.yaw };
+          const slot = store.mode === "assemble" && store.model && store.onDrop
+            ? autoAssemblySlot(store.model, drag.partId, pose.position, useAssemblyStore.getState().snapshot) : null;
+          if (slot) {
+            const partId = drag.partId;
+            const snapped = { position: [...slot.position] as Vec3, yaw: slot.yaw_deg };
+            endDrag(owner, drag);
+            store.setPose(partId, snapped);
+            store.onDrop?.({ partId, pose: snapped });
+          } else store.setPose(drag.partId, pose);
           break;
         }
 
@@ -336,7 +402,7 @@ function SceneContent() {
           if (!drag.partId || !drag.root) break;
           const partId = drag.partId;
           const pose = currentPose(partId, drag.root);
-          endDrag();
+          endDrag(owner, drag);
           store.onDrop?.({ partId, pose });
           break;
         }
@@ -349,21 +415,34 @@ function SceneContent() {
         }
 
         case "ROTATE_MODEL":
-          store.rotate(command.dYaw, command.dPitch);
+          if (!drags.canRotate(source === "gesture" ? command.hand ?? null : null)) break;
+          if (source === "gesture" && !store.handRotationAllowed) break;
+          rotateModel(command.dYaw, command.dPitch);
           break;
 
         case "CANCEL":
-          if (drag.partId && drag.startPose) store.setPose(drag.partId, drag.startPose);
-          drag.orbitLast = null;
-          endDrag();
-          store.setSelected(null);
+          for (const [key, session] of command.hand ? [[owner, drag] as const] : [...drags]) {
+            if (session.partId && session.startPose) store.setPose(session.partId, session.startPose);
+            session.orbitLast = null;
+            endDrag(key, session);
+            store.setInteraction(key, { selected: null, hovered: null, armed: false });
+            gestureHovers.delete(key);
+          }
+          if (!command.hand) store.setSelected(null);
           break;
 
         default:
           break;
       }
     });
-  }, [camera]);
+    return () => {
+      unsubscribe();
+      for (const [owner, drag] of drags) {
+        if (drag.partId && drag.startPose) useLabStore.getState().setPose(drag.partId, drag.startPose);
+        useLabStore.getState().setInteraction(owner, { hovered: null, selected: null, dragging: null, armed: false });
+      }
+    };
+  }, [camera, size, mode]);
 
   if (!model) return null;
   const zoomOut = exploded ? 0.28 : mode === "assemble" ? 0.36 : 0;
@@ -382,9 +461,10 @@ function SceneContent() {
                 slot={slot}
                 pose={poses[part.part_id]}
                 exploded={exploded}
-                dragging={dragging === part.part_id}
-                highlighted={hovered === part.part_id}
-                selected={selected === part.part_id || dragging === part.part_id}
+                dragging={dragging === part.part_id || Object.values(interactions).some((v) => v.dragging === part.part_id)}
+                highlighted={hovered === part.part_id || Object.values(interactions).some((v) => v.hovered === part.part_id)}
+                armed={Object.values(interactions).some((v) => v.armed && v.hovered === part.part_id)}
+                selected={selected === part.part_id || Object.values(interactions).some((v) => v.selected === part.part_id || v.dragging === part.part_id)}
                 dimmed={!!focus && focus !== part.part_id}
                 spin={spins[part.part_id]}
                 fall={falls[part.part_id]}
@@ -393,7 +473,7 @@ function SceneContent() {
           })}
         </group>
         <group position={[-MODEL_CENTER[0], -MODEL_CENTER[1], -MODEL_CENTER[2]]}>
-          <SlotGhost />
+          {(["left", "right", "pointer"] as const).map((owner) => <SlotGhost key={owner} owner={owner} />)}
           <MechanismOverlay />
         </group>
       </group>
@@ -402,12 +482,16 @@ function SceneContent() {
 }
 
 function HandCursorOverlay() {
-  const cursor = useLabStore((s) => s.cursor);
+  const cursors = useLabStore((s) => s.handCursors);
+  return <>{(["left", "right"] as const).map((hand) => {
+  const cursor = cursors[hand];
   if (!cursor) return null;
-  const color = cursor.gesture === "PINCH" ? "#3fb950" : cursor.gesture === "FIST" ? "#f85149" : "#58a6ff";
+  const color = cursor.gesture === "FIST" ? "#f85149" : hand === "left" ? "#58a6ff" : "#f2cc60";
   return (
     <div
+      key={hand}
       data-testid="hand-cursor"
+      data-hand={hand}
       style={{
         position: "absolute",
         left: `${cursor.screen.x * 100}%`,
@@ -416,13 +500,18 @@ function HandCursorOverlay() {
         height: cursor.gesture === "PINCH" ? 18 : 30,
         transform: "translate(-50%, -50%)",
         borderRadius: "50%",
-        border: `3px solid ${color}`,
+        border: `3px ${cursor.selectionLocked ? "dashed" : "solid"} ${cursor.selectionLocked ? "#d2a8ff" : color}`,
         background: `${color}33`,
         pointerEvents: "none",
         transition: "width 80ms, height 80ms",
       }}
-    />
+    >
+      <span style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", color, whiteSpace: "nowrap", fontSize: 12 }}>
+        {hand === "left" ? "왼손" : "오른손"} {cursor.selectionLocked ? "집기 준비" : cursor.gesture === "PINCH" ? "집기" : cursor.gesture === "POINT" ? "선택" : ""}
+      </span>
+    </div>
   );
+  })}</>;
 }
 
 export function GearboxScene({ onCanvas }: { onCanvas?: (el: HTMLCanvasElement) => void }) {

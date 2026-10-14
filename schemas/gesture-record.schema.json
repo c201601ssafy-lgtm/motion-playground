@@ -11,7 +11,7 @@
     "source": { "enum": ["webcam", "synthetic"] },
     "subject_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,16}$" },
     "lighting": { "enum": ["bright", "normal", "dim"] },
-    "label": { "enum": ["NONE", "OPEN_PALM", "PINCH", "FIST"] },
+    "label": { "enum": ["NONE", "OPEN_PALM", "POINT", "PINCH", "FIST"] },
     "recorded_at": { "type": "string", "format": "date-time" },
     "duration_ms": { "type": "number", "exclusiveMinimum": 0 },
     "fps": { "type": "number", "minimum": 0 },

@@ -25,6 +25,7 @@ export function classify(frame: ClassifierInput | null, prev: GestureType = "NON
   if (pinch < pinchLimit && !folded.index) type = "PINCH";
   // 엄지는 가려지거나 오검출이 잦아 판정에서 뺀다 (D-014)
   else if (ext.index && ext.middle && ext.ring && ext.pinky) type = "OPEN_PALM";
+  else if (ext.index && folded.middle && folded.ring && folded.pinky) type = "POINT";
   else if (folded.index && folded.middle && folded.ring && folded.pinky) type = "FIST";
   return { type, confidence };
 }

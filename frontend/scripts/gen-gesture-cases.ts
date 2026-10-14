@@ -15,7 +15,7 @@ const LABEL: Record<keyof typeof POSES, GestureType> = {
   FIST: "FIST",
   PINCH: "PINCH",
   PINCH_OK: "PINCH",
-  POINT: "NONE",
+  POINT: "POINT",
   PEACE: "NONE",
 };
 

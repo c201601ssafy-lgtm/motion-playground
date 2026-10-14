@@ -11,18 +11,20 @@ interface Props {
   onStop: () => void;
   overlay?: ReactNode;
   children?: ReactNode;
+  idleHint?: string;
+  compact?: boolean;
 }
 
-export function CameraPanel({ videoRef, status, error, onStart, onStop, overlay, children }: Props) {
+export function CameraPanel({ videoRef, status, error, onStart, onStop, overlay, children, idleHint, compact = false }: Props) {
   return (
-    <section className={styles.panel} aria-label="웹캠">
+    <section className={`${styles.panel} ${compact ? styles.compact : ""}`} aria-label="웹캠">
       <div className={styles.preview} data-status={status}>
         {/* 거울처럼 보이도록 좌우 반전. 랜드마크 오버레이도 같은 변환을 받는다. */}
         <video ref={videoRef} className={styles.video} muted playsInline />
         {overlay}
         {status !== "on" && (
           <div className={styles.placeholder}>
-            {status === "starting" ? "카메라 켜는 중…" : "카메라 꺼짐 (마우스로도 조작 가능)"}
+            {status === "starting" ? "카메라 켜는 중…" : idleHint ?? "카메라 꺼짐 (마우스로도 조작 가능)"}
           </div>
         )}
       </div>

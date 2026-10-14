@@ -7,7 +7,10 @@
   "additionalProperties": false,
   "required": ["type", "phase", "position", "delta", "confidence", "timestamp"],
   "properties": {
-    "type": { "enum": ["OPEN_PALM", "PINCH", "FIST"] },
+    "hand": { "enum": ["left", "right"] },
+    "trackingLost": { "type": "boolean" },
+    "selectionLocked": { "type": "boolean" },
+    "type": { "enum": ["OPEN_PALM", "POINT", "PINCH", "FIST"] },
     "phase": { "enum": ["start", "hold", "end"] },
     "position": {
       "description": "정규화 이미지 좌표(거울 반전 전), 필터 적용 후",

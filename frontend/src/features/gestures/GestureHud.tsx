@@ -5,6 +5,7 @@ import type { GestureType } from "./types";
 export const GESTURE_INFO: Record<GestureType, { label: string; icon: string; action: string }> = {
   NONE: { label: "없음", icon: "·", action: "-" },
   OPEN_PALM: { label: "손바닥 펼치기", icon: "✋", action: "모델 회전" },
+  POINT: { label: "선택 모드", icon: "☝️", action: "검지로 부품 가리키기 → 집어서 선택" },
   PINCH: { label: "집기", icon: "🤏", action: "부품 잡기·이동" },
   FIST: { label: "주먹", icon: "✊", action: "선택 해제" },
 };

@@ -36,7 +36,7 @@ export class GestureStateMachine {
   update(c: Classification | null, positionOf: ((type: GestureType) => Point3) | null, now: number): GestureEvent[] {
     const events: GestureEvent[] = [];
 
-    if (!c || !positionOf) {
+    if (!c || !positionOf || !Number.isFinite(c.confidence) || c.confidence < this.params.minConfidence) {
       this.missing++;
       this.candidate = "NONE";
       this.candidateCount = 0;

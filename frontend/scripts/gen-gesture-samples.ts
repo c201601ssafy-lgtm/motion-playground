@@ -18,6 +18,7 @@ const pipeline = new GesturePipeline("one-euro");
 const events: GestureEvent[] = [];
 const script: [keyof typeof POSES | null, number][] = [
   ["OPEN_PALM", 12],
+  ["POINT", 12],
   ["PINCH", 15],
   ["FIST", 8],
   [null, 8],
@@ -38,7 +39,8 @@ const LABEL_POSES: Record<GestureType, (keyof typeof POSES)[]> = {
   OPEN_PALM: ["OPEN_PALM"],
   PINCH: ["PINCH", "PINCH_OK"],
   FIST: ["FIST"],
-  NONE: ["POINT", "PEACE"],
+  POINT: ["POINT"],
+  NONE: ["PEACE"],
 };
 const SUBJECTS = [
   { id: "syn01", opts: { scale: 0.18 } },

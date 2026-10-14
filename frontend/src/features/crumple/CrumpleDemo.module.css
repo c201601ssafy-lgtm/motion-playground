@@ -1,0 +1,22 @@
+.scene { position: absolute; inset: 0; overflow: auto; color: #e2e8f0; background: radial-gradient(ellipse at 50% 40%, #20385b 0%, #0c1525 55%, #080e18 100%); }
+.heading { position: relative; z-index: 1; text-align: center; padding: 24px 18px 0; pointer-events: none; }
+.heading span { font-size: 10px; letter-spacing: 4px; color: #93c5fd; }
+.heading h2 { font-size: clamp(20px, 3vw, 30px); margin: 10px 0; font-weight: 600; }
+.heading p { color: #94a3b8; font-size: 12px; }
+.canvas { width: 100%; height: clamp(280px, 52vh, 460px); touch-action: none; cursor: grab; }
+.canvas:active { cursor: grabbing; }
+.closed { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); text-align: center; display: grid; gap: 12px; pointer-events: none; }
+.closed b { font-size: 22px; white-space: nowrap; }.closed span { font-size: 12px; color: #93c5fd; }
+.controls { position: relative; margin: 0 auto 220px; max-width: 620px; padding: 0 22px 24px; }
+.mode, .manual { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.controls button { color: #cbd5e1; border: 1px solid #3c5474; border-radius: 20px; background: #18273c; padding: 9px 15px; cursor: pointer; font-size: 12px; touch-action: none; }
+.controls button[aria-pressed=true] { background: #275384; color: white; border-color: #60a5fa; }
+.manual { margin-top: 14px; align-items: center; }
+.manual label { font-size: 12px; color: #94a3b8; display: flex; gap: 12px; align-items: center; }
+.manual input { accent-color: #93c5fd; width: 160px; }
+.instructions { font-size: 12px; line-height: 1.8; text-align: center; color: #b5c5da; }
+.status { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; color: #bfdbfe; margin-top: 15px; }
+.track { height: 3px; margin: 12px 0; background: #263c57; border-radius: 4px; overflow: hidden; }
+.track i { display: block; height: 100%; background: #93c5fd; }
+.controls small { display: block; text-align: center; color: #6e849e; font-size: 10px; }
+@media(max-width:600px) { .heading { padding-top: 18px; } .controls { margin-bottom: 200px; } .canvas { height: 250px; } .manual { justify-content: flex-end; } }

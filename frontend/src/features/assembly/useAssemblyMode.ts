@@ -71,7 +71,7 @@ async function ensureSession(model: MechanismModel) {
   await startNewSession();
 }
 
-async function onDrop(e: DropEvent) {
+async function onDrop(e: DropEvent, isCurrent: () => boolean = () => true) {
   const model = useLabStore.getState().model;
   const asm = useAssemblyStore.getState();
   if (!model || !asm.sessionId) return;
@@ -83,6 +83,7 @@ async function onDrop(e: DropEvent) {
       axis: [0, 1, 0],
       yaw_deg: ((e.pose.yaw % 360) + 360) % 360,
     });
+    if (!isCurrent()) return;
     const lab = useLabStore.getState();
     const next = poseAfterAttempt(model, result, e.pose);
     // 규칙 위반으로 작업대로 돌아가는 경우: 튕겨 떨어지는 연출 뒤에 돌아간다 (판정과 무관한 연출)
@@ -104,10 +105,11 @@ async function onDrop(e: DropEvent) {
       error: null,
     });
   } catch (err) {
+    if (!isCurrent()) return;
     useLabStore.getState().setPose(e.partId, workbenchPose(model, e.partId));
     useAssemblyStore.getState().set({ error: errorText(err) });
   } finally {
-    useAssemblyStore.getState().set({ busy: false });
+    if (isCurrent()) useAssemblyStore.getState().set({ busy: false });
   }
 }
 
@@ -149,6 +151,7 @@ export function useAssemblyMode() {
   useEffect(() => {
     if (mode !== "assemble" || !model) return;
     const lab = useLabStore.getState();
+    let dropCleanup: (() => void) | undefined;
     lab.setExploded(false);
     lab.setFocus(null);
     lab.setView(ASSEMBLY_VIEW.yaw, ASSEMBLY_VIEW.pitch);
@@ -161,13 +164,32 @@ export function useAssemblyMode() {
       void ensureSession(model);
       // 낙하 연출용 물리 엔진을 미리 받아 둔다. 실패해도 조립은 그대로 된다(연출만 생략).
       loadRapier().catch((err) => console.warn("[fall] Rapier 로드 실패, 낙하 연출 생략", err));
-      lab.setOnDrop((e) => void onDrop(e));
+      // Two hands may release together. Apply attempts in order so snapshots cannot overwrite each other.
+      let dropQueue = Promise.resolve();
+      let active = true;
+      lab.setOnDrop((e) => {
+        const sessionId = useAssemblyStore.getState().sessionId;
+        useLabStore.getState().setPartPending(e.partId, true);
+        dropQueue = dropQueue.then(async () => {
+          try {
+            const isCurrent = () => active && useAssemblyStore.getState().sessionId === sessionId;
+            if (isCurrent()) await onDrop(e, isCurrent);
+          } finally {
+            useLabStore.getState().setPartPending(e.partId, false);
+          }
+        });
+      });
+      // Cleared when leaving the mode, including attempts still waiting in the queue.
+      const stopDrops = useLabStore.subscribe((s) => { if (s.mode !== "assemble") active = false; });
+      // Keep the unsubscribe with the installed callback's lifecycle.
+      dropCleanup = () => { active = false; stopDrops(); };
     }
     const unsub = commandBus.subscribe(({ command }) => {
       if (command.type === "RESET_STEP") void onResetStep();
       else if (command.type === "ASSEMBLE_ALL") void onAssembleAll();
     });
     return () => {
+      dropCleanup?.();
       unsub();
       const l = useLabStore.getState();
       l.setOnDrop(null);

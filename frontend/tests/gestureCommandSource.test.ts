@@ -43,6 +43,40 @@ describe("toScreen", () => {
 });
 
 describe("GestureCommandSource", () => {
+  it("moves the pointing cursor without rotating the model", () => {
+    const { emit, commands, cursors } = setup();
+    emit(ev("POINT", "start", 0.4));
+    emit(ev("POINT", "hold", 0.45, 0.6, 0.05, 0.1));
+    expect(commands.map((c) => c.type)).toEqual(["HOVER", "HOVER"]);
+    expect(cursors.at(-1)?.gesture).toBe("POINT");
+  });
+
+  it("grabs the highlighted target and offsets movement to prevent a pinch jump", () => {
+    const { emit, commands } = setup();
+    emit({ ...ev("POINT", "hold", 0.4, 0.6), timestamp: 100 });
+    emit({ ...ev("POINT", "end", 0.4, 0.6), timestamp: 200 });
+    emit({ ...ev("PINCH", "start", 0.5, 0.5), timestamp: 200 });
+    expect(commands[1]).toEqual({ type: "GRAB_PART", screen: toScreen({ x: 0.4, y: 0.6 }), useHovered: true });
+    emit({ ...ev("PINCH", "hold", 0.49, 0.5), timestamp: 233 });
+    const move = commands[2]!;
+    expect(move.type).toBe("MOVE_PART");
+    if (move.type === "MOVE_PART") {
+      expect(move.screen.x).toBeCloseTo(0.665);
+      expect(move.screen.y).toBeCloseTo(0.65);
+    }
+  });
+
+  it("does not reuse a target after timeout or cancellation", () => {
+    const { emit, commands } = setup();
+    emit({ ...ev("POINT", "hold", 0.4), timestamp: 100 });
+    emit({ ...ev("PINCH", "start"), timestamp: 500 });
+    expect(commands.at(-1)).toEqual({ type: "GRAB_PART", screen: toScreen({ x: 0.5, y: 0.5 }) });
+    emit({ ...ev("POINT", "hold", 0.4), timestamp: 600 });
+    emit({ ...ev("FIST", "start"), timestamp: 650 });
+    emit({ ...ev("PINCH", "start"), timestamp: 700 });
+    expect(commands.at(-1)).toEqual({ type: "GRAB_PART", screen: toScreen({ x: 0.5, y: 0.5 }) });
+  });
+
   it("maps pinch start/hold/end to grab/move/release", async () => {
     const { emit, commands } = setup();
     emit(ev("PINCH", "start"));
