@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Motion Playground · 탭 구기기",
+  "version": "0.1.0",
+  "description": "탭을 선택하고 모션 또는 마우스로 구겨 던져 닫습니다.",
+  "permissions": ["tabs", "activeTab", "storage"],
+  "action": { "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js" },
+  "externally_connectable": {
+    "matches": ["https://c201601ssafy-lgtm.github.io/*", "http://localhost/*", "http://127.0.0.1/*"]
+  }
+}

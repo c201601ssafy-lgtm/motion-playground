@@ -5,15 +5,16 @@ import { handFrameBus } from "../hand-tracking/frameBus";
 import { CrumpleGesture, crumpledVertex } from "./crumpleGesture";
 import styles from "./CrumpleDemo.module.css";
 import { swipeShot, type SwipePoint } from "./swipeThrow";
+import { useChromeTab } from "./useChromeTab";
 import { BIN, basketballShot, flightPoint, PaperThrow, type ThrowState } from "./paperThrow";
 
-function browserTexture() {
+function browserTexture(title?: string) {
   const canvas = document.createElement("canvas"); canvas.width = 1100; canvas.height = 720;
   const c = canvas.getContext("2d")!;
   c.fillStyle = "#ffffff"; c.fillRect(0, 0, 1100, 720);
   c.fillStyle = "#e8edf5"; c.fillRect(0, 0, 1100, 50);
   c.fillStyle = "#ffffff"; c.fillRect(45, 12, 285, 39);
-  c.fillStyle = "#334155"; c.font = "19px sans-serif"; c.fillText("Motion Playground   ×", 75, 38);
+  c.fillStyle = "#334155"; c.font = "19px sans-serif"; c.fillText(`${(title || "Motion Playground").slice(0, 27)}   ×`, 75, 38);
   c.fillText("+", 355, 35); c.fillText("—     □     ×", 960, 34);
   c.fillStyle = "#f8fafc"; c.fillRect(0, 50, 1100, 65);
   c.fillStyle = "#64748b"; c.font = "25px sans-serif"; c.fillText("‹   ›   ⟳", 22, 91);
@@ -32,6 +33,13 @@ function browserTexture() {
     c.font = "16px sans-serif"; c.fillText(["Explore", "Music", "Projects", "Add"][i]!, cx - 25, 500);
   }
   c.fillStyle = "#94a3b8"; c.font = "17px sans-serif"; c.fillText("A browser window you can hold like paper.", 375, 622);
+  if (title) {
+    c.fillStyle = "#f8fafc"; c.fillRect(0, 115, 1100, 605);
+    c.fillStyle = "#334155"; c.textAlign = "center"; c.font = "bold 34px sans-serif";
+    c.fillText(title.slice(0, 38), 550, 340);
+    c.fillStyle = "#64748b"; c.font = "24px sans-serif";
+    c.fillText("선택한 크롬 탭", 550, 410); c.textAlign = "left";
+  }
   // Warm paper stock and subtle fibers, while retaining the browser print.
   c.fillStyle = "rgba(242, 232, 210, 0.12)"; c.fillRect(0, 0, canvas.width, canvas.height);
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
@@ -53,9 +61,22 @@ function paperGrain() {
   return texture;
 }
 
-function PaperWindow({ progress, toss, onGrab }: { progress: number; toss: ThrowState; onGrab: (event: PointerEvent) => void }) {
+function PaperWindow({ progress, toss, onGrab, tab }: { progress: number; toss: ThrowState; onGrab: (event: PointerEvent) => void; tab: { title: string; screenshot: string | null } | null }) {
   const mesh = useRef<THREE.Group>(null), displayed = useRef(0);
-  const texture = useMemo(browserTexture, []);
+  const texture = useMemo(() => browserTexture(tab?.title), [tab?.title]);
+  useEffect(() => {
+    if (!tab?.screenshot) return;
+    const image = new Image();
+    image.onload = () => {
+      const canvas = texture.image as HTMLCanvasElement, ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 115, canvas.width, canvas.height - 115);
+      const scale = Math.min(canvas.width / image.width, (canvas.height - 115) / image.height);
+      ctx.drawImage(image, (canvas.width - image.width * scale) / 2, 115 + (canvas.height - 115 - image.height * scale) / 2, image.width * scale, image.height * scale);
+      texture.needsUpdate = true;
+    };
+    image.src = tab.screenshot;
+    return () => { image.onload = null; };
+  }, [tab?.screenshot, texture]);
   const grain = useMemo(paperGrain, []);
   const geometry = useMemo(() => {
     const sheet = new THREE.PlaneGeometry(5.5, 3.6, 26, 18);
@@ -172,6 +193,7 @@ export function CrumpleDemo() {
   };
   const throwController = useRef(new PaperThrow()), madeBall = useRef(false);
   const [toss, setToss] = useState<ThrowState>(() => throwController.current.step(performance.now()));
+  const chromeTab = useChromeTab(toss.phase === "hit");
   useEffect(() => {
     const unsubscribe = handFrameBus.subscribe((_frame, timing, hands) => {
       if (manual || timing.demo) return;
@@ -202,15 +224,16 @@ export function CrumpleDemo() {
   const reset = () => { swipe.current = null; controller.current = new CrumpleGesture(); throwController.current = new PaperThrow(); madeBall.current = false; setToss(throwController.current.step(performance.now())); progress.current = 0; auto.current = null; held.current = false; setState({ progress: 0, closed: false, armed: false, message: "창을 다시 펼쳤습니다. 두 손을 벌려 주세요" }); };
   return <section className={styles.scene} aria-label="크롬 창 구기기 데모">
     <div className={styles.heading}><span>PAPER BALL · FREE THROW</span><h2>구겨서, 멀리 있는 통으로 슛!</h2><p>{manual ? "종이뭉치를 잡고 위로 쓸어 올려 던져 보세요. 마우스 속도와 방향으로 슛을 조절합니다." : "한 손으로 종이뭉치를 잡고 위로 밀어 올리며 손을 펼쳐 보세요. 손의 속도가 슛의 힘이 됩니다."}</p></div>
-    <div ref={playArea} className={styles.canvas} onPointerMove={move} onPointerUp={release} onPointerCancel={cancelSwipe} onLostPointerCapture={cancelSwipe}><Canvas camera={{ position: [0, 0, 6.2], fov: 40 }} dpr={[1, 1.5]}><CourtCamera playing={toss.phase !== "idle"} /><ambientLight intensity={0.8} /><directionalLight position={[3, 5, 6]} intensity={1.2} /><directionalLight position={[-3, -2, 2]} intensity={0.35} color="#b8d4ff" /><PaperWindow progress={state.progress} toss={toss} onGrab={grab} />{toss.phase !== "idle" && <><MiniCourt /><WasteBasket hit={toss.phase === "hit"} /><Trajectory toss={toss} /></>}</Canvas></div>
+    <div ref={playArea} className={styles.canvas} onPointerMove={move} onPointerUp={release} onPointerCancel={cancelSwipe} onLostPointerCapture={cancelSwipe}><Canvas camera={{ position: [0, 0, 6.2], fov: 40 }} dpr={[1, 1.5]}><CourtCamera playing={toss.phase !== "idle"} /><ambientLight intensity={0.8} /><directionalLight position={[3, 5, 6]} intensity={1.2} /><directionalLight position={[-3, -2, 2]} intensity={0.35} color="#b8d4ff" /><PaperWindow progress={state.progress} toss={toss} onGrab={grab} tab={chromeTab.tab} />{toss.phase !== "idle" && <><MiniCourt /><WasteBasket hit={toss.phase === "hit"} /><Trajectory toss={toss} /></>}</Canvas></div>
     {toss.phase === "hit" && <div className={styles.closed}><b>골인!</b><span>창 모형을 쓰레기통에 버렸습니다.</span></div>}
     <div className={styles.controls}>
+      {chromeTab.connected && <div className={styles.instructions}><strong>선택한 탭: {chromeTab.tab?.title || "연결 중"}</strong><p role="status">{chromeTab.message}</p></div>}
       <div className={styles.mode}><button aria-pressed={!manual} onClick={() => { setManual(false); reset(); }}>카메라 모션</button><button aria-pressed={manual} onClick={() => { setManual(true); reset(); }}>마우스로 체험</button><button onClick={reset}>창 다시 펼치기</button></div>
       {manual && toss.phase === "idle" ? <div className={styles.manual}><label>구김 정도<input aria-label="구김 정도" type="range" min="0" max="1" step="0.01" value={state.progress} onChange={(e) => { auto.current = null; const p = Number(e.target.value); progress.current = p; setState((s) => ({ ...s, progress: p, closed: p >= 1 })); }} /></label><button onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); held.current = true; auto.current = null; }} onPointerUp={() => { held.current = false; }} onPointerCancel={() => { held.current = false; }}>꾹 눌러 구기기</button><button onClick={() => { progress.current = 0; auto.current = performance.now(); }}>전체 효과 재생</button></div> : <p className={styles.instructions}>{toss.phase === "idle" ? "① 카메라 켜기 → ② 양손 펼쳐 벌리기 → ③ 손가락을 오므리며 모으기" : manual ? "종이뭉치를 잡고 위로 쓸어 올려 던지세요" : "④ 한 손으로 잡고 조준 → ⑤ 위로 밀어 올리며 손가락을 펼쳐 슛 · 빨리 올리면 더 멀리"}</p>}
       {manual && toss.phase === "holding" && <p className={styles.instructions}>종이뭉치를 잡고 위로 쓸어 올린 뒤 놓으세요 · 빠를수록 멀리, 좌우 움직임으로 방향 조절</p>}
       {toss.phase === "missed" && <div className={styles.manual}><button onClick={() => { throwController.current.begin(); if (manual) throwController.current.state.message = "종이뭉치를 클릭한 채 위로 쓸어 올리고 놓으세요"; }}>종이뭉치 다시 줍기</button></div>}
       <div className={styles.status}><span role="status">{toss.phase === "idle" ? state.message : toss.message}</span><b>{toss.phase === "idle" ? `${Math.round(state.progress * 100)}%` : toss.phase === "holding" ? "던지기 준비" : toss.phase === "flying" ? "비행 중" : toss.phase === "hit" ? "골인" : "다시 시도"}</b></div><div className={styles.track}><i style={{ width: `${state.progress * 100}%` }} /></div>
-      <small>시각 효과를 확인하는 데모입니다. 실제 크롬 탭이나 창은 닫히지 않습니다.</small>
+      <small>{chromeTab.connected ? "확장 프로그램에서 선택한 탭만 골인 후 닫습니다. 체험 페이지는 유지됩니다." : "시각 효과를 확인하는 데모입니다. 실제 크롬 탭이나 창은 닫히지 않습니다."}</small>
     </div>
   </section>;
 }
